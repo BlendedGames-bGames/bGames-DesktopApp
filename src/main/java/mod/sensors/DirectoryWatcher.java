@@ -10,8 +10,7 @@ package mod.sensors;
  * @author Bad-K
  */
 
-import static com.webclient.userinterface.BGFApp.sensor;
-import static com.webclient.userinterface.BGFApp.sensores;
+import static com.webclient.userinterface.BGFApp.obsp;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -21,35 +20,34 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static com.webclient.userinterface.BGFApp.sensorsSubs;
 
 public class DirectoryWatcher implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(DirectoryWatcher.class.getName());
     File libs = new File("dist/plugins");
     File[] jars;
-    ObsPlayer obsp= new ObsPlayer();
-    public static ArrayList<String> Sensores= new ArrayList(); //BORRAR
+    public static ArrayList<String> SensorsStringList= new ArrayList(); //BORRAR
     String pahtName;
     private WatchService watcher;
     private Thread watcherThread;
+    private static SensorSubject sensor;
    
    public void doWath(String directory) throws IOException {
 
        System.out.println("WatchService in " + directory);
        
-       // Obtenemos el directorio
+       // get the directory
        Path directoryToWatch = Paths.get(directory);
        if (directoryToWatch == null) {
            throw new UnsupportedOperationException("Directory not found");
        }
 
-       // Solicitamos el servicio WatchService
+       // request the WatchService service
        WatchService watchService = directoryToWatch.getFileSystem().newWatchService();
 
-       // Registramos los eventos que queremos monitorear
+       // Register the events that we want to monitor
        directoryToWatch.register(watchService, new WatchEvent.Kind[] {ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY});
 
        System.out.println("Started WatchService in " + directory);
@@ -77,7 +75,7 @@ public class DirectoryWatcher implements Runnable {
                         
                         if ("ENTRY_MODIFY".equals(eventKind)){
                             
-                            System.out.println("Esto que es: "+ event.context().getClass());
+                            System.out.println("Event-Modify: "+ event.context().getClass());
                         }
                         else if ("ENTRY_CREATE".equals(eventKind)){
                             
@@ -88,32 +86,12 @@ public class DirectoryWatcher implements Runnable {
                                 return pathname.getName().toLowerCase().endsWith(".jar");
                                 }       
                             });
-                            if (jars.length >=1){
-                                 for (int i=0; i<jars.length; i++) {
-                                     System.out.println("Entro al LOOP de sensores NUMERO: "+ (i+1));
-                                     pahtName = ((jars[i].toString().split("\\\\"))[2]).split("\\.")[0];
-                                     System.out.println("NOMBRE DEL PATH AGREGADO: " + pahtName);
-                                     Set<String> hashSetAux;
-                                     hashSetAux = new HashSet<>(Sensores);
-                                     ArrayList<String> SensAux = Sensores;
-                                     SensAux.add(pahtName);
-                                     Set<String> hashSet;
-                                     hashSet = new HashSet<>(SensAux);
-                                     if(!hashSet.equals(hashSetAux)){
-                                         Sensores.add(pahtName);
-                                         System.out.println("Sensoressssssssssss:"+ pahtName);
-                                         sensor = new SensorSubject("Jaime",jars[i], 1);
-                                         sensores.add(sensor);
-                                         sensor.addObvserver(obsp);
-                                         sensor.start();
-                                     }
-                                 }
-                             }
+                            start_sensor_found(file);
                             //File pathname = pathname.getName().toLowerCase().endsWith(".jar");
                         }
                         
                         else if ("ENTRY_DELETE".equals(eventKind)){
-                            System.out.println("Esto que es: "+ event.context().getClass());
+                            System.out.println("Event-Delete: "+ event.context().getClass());
 
                         }
                     }
@@ -129,14 +107,34 @@ public class DirectoryWatcher implements Runnable {
     @Override
     public void run() {
         DirectoryWatcher fileChangeWatcher = new DirectoryWatcher();
-        System.out.println("ESTA CUSTION FEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: "+ System.getProperty("user.dir")+"\\dist\\plugins");
         try {
             fileChangeWatcher.doWath(System.getProperty("user.dir")+"\\dist\\plugins");
         } catch (IOException ex) {
             Logger.getLogger(DirectoryWatcher.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("NADANADA");
+        
     }
 
+    //Start plugins instantly when included
+    private void start_sensor_found(String filename){
+        System.out.println("jars.length: " + jars.length);
+        if (jars.length >=1){
+            for (int i=0; i<jars.length; i++) {
+                pahtName = ((jars[i].toString().split("\\\\"))[2]).split("\\.")[0]+".jar";
+                if(pahtName.equals(filename)){
+                    SensorsStringList.add(pahtName);
+                    System.out.println("Sensoressssssssssss:"+ pahtName);
+                    sensor = new SensorSubject("Jaime",jars[i], 1);
+                    sensorsSubs.add(sensor);
+                    sensor.addObvserver(obsp);
+                    sensor.start();
+                }
+            }
+                
+        }
+        
+
+    }
+    
 }
 

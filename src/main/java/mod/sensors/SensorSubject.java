@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 
 /**
@@ -29,7 +31,7 @@ public class SensorSubject implements Subject,Runnable {
     private int id;
     private File archivename;
     private Thread ThreadExPlug;
-    private ArrayList<Observer> Observerss; 
+    private ArrayList<Observer> Observerss; //Observers Of Sensors
     private Class<?> pluginClass;
     private Object ob = null;
     
@@ -59,7 +61,7 @@ public class SensorSubject implements Subject,Runnable {
     public void removeObserver(Observer obs) {
         Observerss.remove(obs);
     }
-    public void notificar(SensorNeed SN) {
+    public void notify(SensorNeed SN) {
         for(Observer o: Observerss){o.update(SN);}
     }
 
@@ -96,8 +98,9 @@ public class SensorSubject implements Subject,Runnable {
     */
     @Override
     public void run() {
-        
-        System.out.println("ABSOLUTE CACA: "+ this.archivename.getAbsolutePath());
+        final JDialog dialog = new JDialog();
+        dialog.setAlwaysOnTop(true);
+        //System.out.println("Name of archive .jar detected: "+ this.archivename.getAbsolutePath());
         CrunchifyFindClassesFromJar thasas = new CrunchifyFindClassesFromJar();
         try {
             TimeUnit.SECONDS.sleep(5);
@@ -105,12 +108,14 @@ public class SensorSubject implements Subject,Runnable {
             Logger.getLogger(SensorSubject.class.getName()).log(Level.SEVERE, null, ex);
         }
         String path = thasas.getCrunchifyClassNamesFromJar(this.archivename.getAbsolutePath(),"initializeValues");
-        System.out.println("ACA ESTA EL PATH: "+path);
+        //System.out.println("PATH or jar.: "+path);
         if (path == null){
-            System.out.println(this.archivename.getAbsolutePath()+": NO EXISTE EN  ESTE JAR LA MINIMA CONDICION PARA QUE EL JAR SEA UN PLUGGIN");
-            
+            //System.out.println(this.archivename.getAbsolutePath()+": THERE IS NO MINIMUM CONDITION IN THIS JAR FOR THE JAR TO BE A PLUGGIN");
+            JOptionPane.showMessageDialog(null, this.archivename.getAbsolutePath()+": THERE IS NO MINIMUM CONDITION IN THIS JAR FOR THE JAR TO BE A PLUGGIN");
         } else{
-            System.out.println(this.archivename.getAbsolutePath()+"PLUGIN INICIADO CON EXITO");
+            //System.out.println(this.archivename.getAbsolutePath()+": PLUGIN STARTED WITH SUCCESS");
+            
+            JOptionPane.showMessageDialog(dialog, this.archivename.getAbsolutePath()+": PLUGIN STARTED WITH SUCCESS");
             URL myJarFile;
             
             try {
@@ -122,17 +127,7 @@ public class SensorSubject implements Subject,Runnable {
                     pluginClass = Class.forName(path, false, cl);
                     //OBJETO INICIALIZADO AL UTILIZAR LA CLASE ANTERIOR
                     this.ob = pluginClass.newInstance();
-                    
-                    /*Field mtd[] = PlugginClass.getDeclaredFields();
-                    for(int i = 0; i<mtd.length;i++){
-                        System.out.println(mtd[i].getName());
-                    }*/
-                    
-                    
-                    /*Class[] argTypes = new Class[] { Observadores.getClass() }; //Integer.TYPE;
-                    Method metodo = PlugginClass.getDeclaredMethod("iniObs",argTypes);
-                    metodo.invoke(ob,Observadores);*/
-                    
+                                        
                     Method metodo = pluginClass.getDeclaredMethod("initializeValues");
                     metodo.invoke(this.ob);
                     
@@ -140,19 +135,16 @@ public class SensorSubject implements Subject,Runnable {
                     metodo = pluginClass.getDeclaredMethod("setSensorNeedObservers",argTypes);
                     metodo.invoke(this.ob,Observerss);
                     
-                    System.out.println("ALOSDAFASDFSADGFASDGSADGSDG ++++++++++++++++++++++++++++++++++++");
                     metodo = pluginClass.getDeclaredMethod("getSensorNeed");
                     SensorNeed AuxOB =(SensorNeed)metodo.invoke(this.ob);
-                    notificar(AuxOB);
+                    notify(AuxOB);
                     
                     AuxOB.setHost("8001");
                     metodo = pluginClass.getDeclaredMethod("run");
                     metodo.invoke(this.ob);
                      
-                    
-                    
                     getThreadExPlug().interrupt();
-                    System.out.println("\n\nTERMINA LA EJECUCIÓN DEL SENSOR: "+ getThreadExPlug().getId() +" Y TODO \n\n");
+                    //System.out.println("\n\nEnd Ejecution of sensor: "+ getThreadExPlug().getId() +" \n\n");
 
 
                 } catch (ClassNotFoundException ex) {

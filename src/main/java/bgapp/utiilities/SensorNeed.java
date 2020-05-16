@@ -5,7 +5,6 @@
  */
 package bgapp.utiilities;
 
-import bgapp.utiilities.AttributePlayer;
 import java.util.ArrayList;
 import mod.sensors.Observer;
 
@@ -42,7 +41,7 @@ public class SensorNeed {
             this.Observadores = Obs;
         }
         
-        /*La función notificar existe para informar a la aplicación principal o los observadores que se encuentren
+        /*La función notify existe para informar a la aplicación principal o los observadores que se encuentren
         sobre un atributo específico.
         El atributo enviado debe ser uno procesado, por ejemplo, si alguien se mantiene
         concentrado mucho tiempo, gana un punto de "resistencia cognitiva" y este puntaje

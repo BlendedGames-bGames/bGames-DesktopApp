@@ -11,7 +11,7 @@ import static com.webclient.userinterface.BGFApp.ListSensors;
 import static com.webclient.userinterface.BGFApp.myControllerHandle;
 
 /**
- *
+ *  The observer of Sensors
  * @author InTEracTIon User
  */
 public class ObsPlayer implements Observer {
@@ -21,19 +21,20 @@ public class ObsPlayer implements Observer {
     
     @Override
     public void update(AttributePlayer AP) {
-        System.out.println("Esta cosa se Updatio, es decir, Observo algo :O ");
+        System.out.println("Observer recibe Attribute of Player");
     }
 
     @Override
     public void update() {
-        System.out.println("Esta cosa se Updatio, es decir, Observo algo :OOOOOOOOOOOOOO "); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Observer see conection of Sensor"); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
     public void update(SensorNeed SN){
-        System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getPlayerId());
-        System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getSensorCategory());
-        System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getSensorDescripcion());
+        System.out.println("Observer recibe Sensor \""+SN.getSensorNombre()+"\" information and add to list for new sensors");
+        //System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getPlayerId());
+        //System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getSensorCategory());
+        //System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getSensorDescripcion());
         ListSensors.add(SN);
         myControllerHandle.reloadDataForTables();
     }

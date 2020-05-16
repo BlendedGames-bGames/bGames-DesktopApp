@@ -19,6 +19,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import static com.webclient.userinterface.BGFApp.ListSensors;
+import javafx.stage.Stage;
 
 
 public class FXMLController implements Initializable {
@@ -26,7 +27,9 @@ public class FXMLController implements Initializable {
     @FXML
     private Label label;
     @FXML
-    private Button button;
+    private Button buttonMin;
+    @FXML
+    public Button buttonReconnectSens;
     @FXML
     private BarChart attributesBar;
     @FXML
@@ -55,11 +58,19 @@ public class FXMLController implements Initializable {
     private TableColumn<SensorNeed, Integer> col_Acciones;
     
     private BGFApp mainApp;
-            
+                
     @FXML
-    private void handleButtonAction(ActionEvent event) {
-        System.out.println("You clicked me!");
-        label.setText("Hello World!");
+    public void handleButtonReconnectSensAction(ActionEvent event) {
+        //label.setText("Hello World!");
+    }
+    
+    @FXML
+    public void handleButtonMinAction(ActionEvent event) {
+        // get a handle to the stage
+        Stage stage = (Stage) buttonMin.getScene().getWindow();
+        // do what you have to do
+        stage.hide();
+        //label.setText("Hello World!");
     }
     
     @Override
@@ -68,7 +79,6 @@ public class FXMLController implements Initializable {
         loadDataForBarChart();
         loadDataForAttributeTable();
         loadDataForAttributeTableSecond();
-        System.out.println("Solo al iniciar pasa esto???");
     }    
     
     
@@ -78,7 +88,6 @@ public class FXMLController implements Initializable {
         //Serialización de los datos de la tabla
         XYChart.Series serieDeDatos = new XYChart.Series();
         serieDeDatos.setName("Atributos");
-        //System.out.println("LESERAS: "+ attributes.size());
         for(int x=0;x<attributes.size();x++) {
             serieDeDatos.getData().add(new XYChart.Data<>(attributes.get(x).getName(),attributes.get(x).getData()));
         }
@@ -102,7 +111,6 @@ public class FXMLController implements Initializable {
         //Inciializar Observable
         ObservableList<AttributePlayer> table_data = FXCollections.observableArrayList();
         
-        //System.out.println("LESERAS: "+ attributes.size());
         for (AttributePlayer attributesAll1 : attributesAll) {
             table_data.add(attributesAll1);
         }

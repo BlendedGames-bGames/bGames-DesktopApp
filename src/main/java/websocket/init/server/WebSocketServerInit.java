@@ -19,14 +19,13 @@ public class WebSocketServerInit{
     private String initSocket = "npm start";
     
     public WebSocketServerInit(String OS) throws IOException {
-        System.out.println("EMPIEza!?");
         if ("Unix".equals(OS)) {
             cmd = "cd websocket";
             dd = "";
             initSocket = "npm start";
             
         }else{
-            System.out.println("You run Windows OS ? haha");
+            //System.out.println("You run Windows OS ? haha");
         }
     }
     
@@ -44,10 +43,6 @@ public class WebSocketServerInit{
             // PRUEBAAS!!!
             
             Runtime.getRuntime().exec("cmd.exe /c" + cmd +"&&" +dd+"&&" +initSocket);
-            //Process process = Runtime.getRuntime().exec("cmd.exe /c" + cmd +"&&" +dd+"&&" +initSocket);
-            //setProcessServer(process);
-            System.out.println("HOOOOOOOOLAAAAAAAAAAAAAAAA");
-            //setProcessServer(builder.start());
             
             
             // PRUEBAAS!!!

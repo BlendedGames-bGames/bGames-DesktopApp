@@ -37,8 +37,7 @@ public class CrunchifyFindClassesFromJar {
 				if ((crunchifyJar.getName().endsWith(".class"))) {
 					String className = crunchifyJar.getName().replaceAll("/", "\\.");
 					String myClass = className.substring(0, className.lastIndexOf('.'));
-                                        System.out.println("Clase detectada: "+ myClass);
-					listofClasses.put(myClass);
+                                        listofClasses.put(myClass);
 				}
 			}
 			crunchifyObject.put("Jar File Name", crunchifyJarName);
@@ -52,11 +51,11 @@ public class CrunchifyFindClassesFromJar {
         
         public String getCrunchifyClassNamesFromJar(String crunchifyJarName,String metodo) {
             
-            URL myJarFile;// 1adsfasfsd
+            URL myJarFile;// 
             try {
                     JarInputStream crunchifyJarFile = new JarInputStream(new FileInputStream(crunchifyJarName));
                     JarEntry crunchifyJar;
-                    myJarFile = new URL("jar","","file:"+crunchifyJarName+"!/");// wsdfasdfsadf
+                    myJarFile = new URL("jar","","file:"+crunchifyJarName+"!/");// 
                     while (true) {
                         crunchifyJar = crunchifyJarFile.getNextJarEntry();
                         if (crunchifyJar == null) {
@@ -66,25 +65,18 @@ public class CrunchifyFindClassesFromJar {
                             String className = crunchifyJar.getName().replaceAll("/", "\\.");
                             String myClass = className.substring(0, className.lastIndexOf('.'));
                             
-                            //System.out.println("Clase detectada1: "+ myClass);
-                            //System.out.println("Clase detectada2: "+ className);
                             try {
                                 
-                                ClassLoader cl = URLClassLoader.newInstance(new URL[]{myJarFile},this.getClass().getClassLoader());// asdfasdf
+                                ClassLoader cl = URLClassLoader.newInstance(new URL[]{myJarFile},this.getClass().getClassLoader());// 
                                 Class<?> PlugginClass = Class.forName(myClass, false, cl);
                                                            
                                 if(!"bgapp.utiilities.PluginMethods".equals(PlugginClass.getName())){
                                     Method main = PlugginClass.getDeclaredMethod(metodo);
-                                    System.out.println("GETNAME: "+PlugginClass.getName());
-                                    //if ()
-                                    System.out.println("ESTA COSA FUNCIONA? ------ "+main.toString());
                                     PlugginClass = null;
                                     return myClass;
                                 } else {
-                                    System.out.println("ASDASDASDDSADSADSADA NO >:O");
+                                    System.out.println("library found, its Ok");
                                 }
-                                
-                                
                                 
                             } catch (Exception e) {
                                     //System.out.println("No posee la función buscada "+e);

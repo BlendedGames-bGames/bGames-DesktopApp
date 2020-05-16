@@ -112,8 +112,8 @@
             </TabPane>
             <HBox alignment="TOP_RIGHT" prefHeight="25.0" prefWidth="1016.0">
                <children>
-                  <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Reconectar Sensores" />
-                    <Button fx:id="button" onAction="#handleButtonAction" prefHeight="25.0" prefWidth="106.0" text="Minimizar" />
+                  <Button fx:id="buttonReconnectSens" onAction="#handleButtonReconnectSensAction" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="Reconectar Sensores" />
+                    <Button fx:id="buttonMin" onAction="#handleButtonMinAction" prefHeight="25.0" prefWidth="106.0" text="Minimizar" />
                </children>
             </HBox>
          </children>
