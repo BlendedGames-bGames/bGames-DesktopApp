@@ -15,30 +15,30 @@ import mod.sensors.Observer;
 public class SensorNeed {
         private String sensorVersion;
         private String sensorCategory;
-        private String sensorDescripcion;
+        private String sensorDescription;
         private ArrayList<AttributePlayer> listOfAttributes ;
         private int PlayerId ;
         private String Host;
-        public ArrayList<Observer> Observadores;
-        private String sensorNombre;
+        public ArrayList<Observer> Observers;
+        private String sensorName;
         public SensorNeed(){
             this.sensorVersion = null;
             this.sensorCategory=null;
-            this.sensorDescripcion=null;
+            this.sensorDescription=null;
             this.listOfAttributes = new ArrayList<>();
             this.PlayerId =0;
             this.Host = null;
-            this.Observadores = new ArrayList();
+            this.Observers = new ArrayList();
         }
         public SensorNeed(String NameApp,String VER,String Cat,String Des,ArrayList<AttributePlayer> LISTATT,int PlayerID,String Host,ArrayList<Observer> Obs){
-            this.sensorNombre = NameApp;
+            this.sensorName = NameApp;
             this.sensorVersion = VER;
             this.sensorCategory=Cat;
-            this.sensorDescripcion=Des;
+            this.sensorDescription=Des;
             this.listOfAttributes = LISTATT;
             this.PlayerId = PlayerID;
             this.Host = Host;
-            this.Observadores = Obs;
+            this.Observers = Obs;
         }
         
         /*La función notify existe para informar a la aplicación principal o los observadores que se encuentren
@@ -49,12 +49,12 @@ public class SensorNeed {
         jugador lo considere mejor. (Atributo capturado como característica)
         */
         public void notify(AttributePlayer AP) {
-            Observadores.forEach((o) -> {
+            Observers.forEach((o) -> {
                 o.update(AP);
             });
         }
         public void notifyOK() {
-            Observadores.forEach((o) -> {
+            Observers.forEach((o) -> {
                 o.update();
             });
         }
@@ -88,17 +88,17 @@ public class SensorNeed {
         }
 
         /**
-         * @return the sensorDescripcion
+         * @return the sensorDescription
          */
-        public String getSensorDescripcion() {
-            return sensorDescripcion;
+        public String getSensorDescription() {
+            return sensorDescription;
         }
 
         /**
-         * @param sensorDescripcion the sensorDescripcion to set
+         * @param sensorDescription the sensorDescription to set
          */
-        public void setSensorDescripcion(String sensorDescripcion) {
-            this.sensorDescripcion = sensorDescripcion;
+        public void setSensorDescription(String sensorDescription) {
+            this.sensorDescription = sensorDescription;
         }
 
         /**
@@ -145,17 +145,17 @@ public class SensorNeed {
         
         
         /**
-         * @return the sensorNombre
+         * @return the sensorName
          */
-        public String getSensorNombre() {
-            return sensorNombre;
+        public String getSensorName() {
+            return sensorName;
         }
 
         /**
-         * @param sensorNombre the sensorNombre to set
+         * @param sensorName the sensorName to set
          */
-        public void setSensorNombre(String sensorNombre) {
-            this.sensorNombre = sensorNombre;
+        public void setSensorName(String sensorName) {
+            this.sensorName = sensorName;
         }
         
         

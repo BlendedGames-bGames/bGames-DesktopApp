@@ -7,6 +7,7 @@ package mod.sensors;
 import bgapp.utiilities.SensorNeed;
 import bgapp.utiilities.CrunchifyFindClassesFromJar;
 import bgapp.utiilities.AttributePlayer;
+import static com.webclient.userinterface.BGFApp.WEBSOCKET_HOST;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,6 +35,7 @@ public class SensorSubject implements Subject,Runnable {
     private ArrayList<Observer> Observerss; //Observers Of Sensors
     private Class<?> pluginClass;
     private Object ob = null;
+    private String HostWebSocket = WEBSOCKET_HOST; ///WEBSOCKET_DIR
     
     //Para inicializar el Sensor observable se le deben asignar el nombre del jugador y el nombre del archivo el cuel es un .jar
     public SensorSubject(String playername, File archivename, int id){
@@ -139,7 +141,7 @@ public class SensorSubject implements Subject,Runnable {
                     SensorNeed AuxOB =(SensorNeed)metodo.invoke(this.ob);
                     notify(AuxOB);
                     
-                    AuxOB.setHost("8001");
+                    AuxOB.setHost(getHostWebSocket());
                     metodo = pluginClass.getDeclaredMethod("run");
                     metodo.invoke(this.ob);
                      
@@ -171,7 +173,19 @@ public class SensorSubject implements Subject,Runnable {
            
     }
     
-    
+        /**
+     * @return the HostWebSocket
+     */
+    public String getHostWebSocket() {
+        return HostWebSocket;
+    }
+
+    /**
+     * @param HostWebSocket the HostWebSocket to set
+     */
+    public void setHostWebSocket(String HostWebSocket) {
+        this.HostWebSocket = HostWebSocket;
+    }
         /**
      * @return the ThreadExPlug
      */

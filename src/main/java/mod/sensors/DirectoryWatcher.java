@@ -10,7 +10,10 @@ package mod.sensors;
  * @author Bad-K
  */
 
+import static com.webclient.userinterface.BGFApp.WEBSOCKET_HOST;
+import static com.webclient.userinterface.BGFApp.idPlayer;
 import static com.webclient.userinterface.BGFApp.obsp;
+import static com.webclient.userinterface.BGFApp.nameAccount;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -36,7 +39,7 @@ public class DirectoryWatcher implements Runnable {
    
    public void doWath(String directory) throws IOException {
 
-       System.out.println("WatchService in " + directory);
+       //System.out.println("WatchService in " + directory);
        
        // get the directory
        Path directoryToWatch = Paths.get(directory);
@@ -50,7 +53,7 @@ public class DirectoryWatcher implements Runnable {
        // Register the events that we want to monitor
        directoryToWatch.register(watchService, new WatchEvent.Kind[] {ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY});
 
-       System.out.println("Started WatchService in " + directory);
+       //System.out.println("Started WatchService in " + directory);
             
        watcherThread = new Thread() {
             @Override
@@ -71,15 +74,15 @@ public class DirectoryWatcher implements Runnable {
                     for (WatchEvent event : key.pollEvents()) {
                         String eventKind = event.kind().toString();
                         String file = event.context().toString();
-                        System.out.println("Event : " + eventKind + " in File " +  file);
+                        //System.out.println("Event : " + eventKind + " in File " +  file);
                         
                         if ("ENTRY_MODIFY".equals(eventKind)){
                             
-                            System.out.println("Event-Modify: "+ event.context().getClass());
+                            //System.out.println("Event-Modify: "+ event.context().getClass());
                         }
                         else if ("ENTRY_CREATE".equals(eventKind)){
                             
-                            System.out.println("Esto que es: "+ event.context().getClass());
+                            //System.out.println("Esto que es: "+ event.context().getClass());
                             libs = new File("dist/plugins");
                             jars = libs.listFiles(new FileFilter() {
                             public boolean accept(File pathname) {
@@ -91,7 +94,7 @@ public class DirectoryWatcher implements Runnable {
                         }
                         
                         else if ("ENTRY_DELETE".equals(eventKind)){
-                            System.out.println("Event-Delete: "+ event.context().getClass());
+                            //System.out.println("Event-Delete: "+ event.context().getClass());
 
                         }
                     }
@@ -117,14 +120,15 @@ public class DirectoryWatcher implements Runnable {
 
     //Start plugins instantly when included
     private void start_sensor_found(String filename){
-        System.out.println("jars.length: " + jars.length);
+        //System.out.println("jars.length: " + jars.length);
         if (jars.length >=1){
             for (int i=0; i<jars.length; i++) {
                 pahtName = ((jars[i].toString().split("\\\\"))[2]).split("\\.")[0]+".jar";
                 if(pahtName.equals(filename)){
                     SensorsStringList.add(pahtName);
-                    System.out.println("Sensoressssssssssss:"+ pahtName);
-                    sensor = new SensorSubject("Jaime",jars[i], 1);
+                    //System.out.println("Sensorpaht:"+ pahtName);                    
+                    sensor = new SensorSubject(nameAccount,jars[i], idPlayer);
+                    sensor.setHostWebSocket(WEBSOCKET_HOST);
                     sensorsSubs.add(sensor);
                     sensor.addObvserver(obsp);
                     sensor.start();

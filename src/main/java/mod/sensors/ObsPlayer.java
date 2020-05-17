@@ -31,7 +31,7 @@ public class ObsPlayer implements Observer {
     
     @Override
     public void update(SensorNeed SN){
-        System.out.println("Observer recibe Sensor \""+SN.getSensorNombre()+"\" information and add to list for new sensors");
+        System.out.println("Observer recibe Sensor \""+SN.getSensorName()+"\" information and add to list for new sensors");
         //System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getPlayerId());
         //System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getSensorCategory());
         //System.out.println("AGREGO UN SN CORRECTAEMNTE ----------------***************----------***********-----------------************--------"+ SN.getSensorDescripcion());

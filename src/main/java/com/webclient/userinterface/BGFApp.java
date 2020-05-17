@@ -34,7 +34,6 @@ import java.awt.AWTException;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
-import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -48,25 +47,32 @@ import javax.imageio.ImageIO;
 
 public class BGFApp extends Application {
     // Init constants
-    private static final String folder = "dist/plugins";
-    private static final String WebSocketDir = "http://localhost:8001";
-    private static int id = 1; // Or id of player init the app
+    private static final String FOLDER = "dist/plugins";
+    public static final String WEBSOCKET_HOST = "http://localhost:8003";
+    private static final String ATTRIBUTES_HOST = "http://localhost:3030/getAttributes/";
+    private static final String SUMMARY_HOST = "http://localhost:3030/getAttributesSummary/";
+    private static final String ACCOUNTS_HOST = "http://localhost:3030/accounts/";
+    
+    
+    //Account vars
+    public static String nameAccount = "Jaime";
+    public static int idPlayer = 0; // Or idPlayer of player init the app
+    public static ArrayList<Integer> Players = new ArrayList();
     
     //Minimize vars
     //DisplayTrayIcon DTI = new DisplayTrayIcon();
     private boolean firstTime;
     private TrayIcon trayIcon;
-    private static final String iconImageLoc ="https://cdn3.iconfinder.com/data/icons/electronic-device-line/128/Joystick-512.png";
     private static Thread watcherProcess;
         
     //Attributes 
     public static ArrayList<PlayerSummaryAttribute> attributes= new ArrayList();
     public static ArrayList<AttributePlayer> attributesAll= new ArrayList();
     
-    //Sensors List and 
+    //Sensors 
     public static ArrayList<SensorNeed> ListSensors = new ArrayList();
-    public static ArrayList<Integer> Players = new ArrayList();
     private static SensorSubject sensor;
+    
     //Init Observer
     public static ObsPlayer obsp= new ObsPlayer();
     public static ArrayList<SensorSubject> sensorsSubs = new ArrayList();
@@ -75,7 +81,7 @@ public class BGFApp extends Application {
     private static WebSocketServerInit websock;
     public static Socket socket;
         
-    
+    //FMX Controller
     public static FXMLController myControllerHandle;
     private Stage stage0;
     
@@ -103,17 +109,17 @@ public class BGFApp extends Application {
         myControllerHandle.buttonReconnectSens.setOnAction((event)->{
             // Button was clicked, do something...
             for (int i = 0; i < sensorsSubs.size(); i++) {
-                System.out.println("Kill thread of sensors: " + i);
+                //System.out.println("Kill thread of sensors: " + i);
                 sensorsSubs.get(i).Stopp();
             }
             ListSensors.clear();
             myControllerHandle.reloadDataForTables();
-            System.out.println("Exit if kill threads of sensors!");
+            //System.out.println("Exit if kill threads of sensors!");
             for (int i = 0; i < sensorsSubs.size(); i++) {
-                System.out.println("Star thread of sensors: " + i);
+                //System.out.println("Star thread of sensors: " + i);
                 sensorsSubs.get(i).start();
             }
-            System.out.println("OK all thread of sensors Start!");
+            //System.out.println("OK all thread of sensors Start!");
             
         });
         
@@ -129,20 +135,47 @@ public class BGFApp extends Application {
         File currentDirFile = new File(".");
         String helper = currentDirFile.getAbsolutePath();
         String currentDir = helper.substring(0, helper.length() - currentDirFile.getCanonicalPath().length());//this line may need a try-catch block
-        
-        
-        
-        /*stage0.setOnCloseRequest( event ->
-        {
-            System.out.println("CLOSING");
-            socket.disconnect();
-            
-        });*/
-        
-        socketComunicationInit(WebSocketDir);
-                
+
+        socketComunicationInit(WEBSOCKET_HOST);
     }
 
+    
+    
+    /**
+     * 
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) throws IOException, JSONException{
+        
+        //Only have one player in this app
+        //PlayerGetPassword();
+        String password = "nothing";
+        getIDofPlayer(nameAccount,password);
+        Players.add(idPlayer);
+        setIdPlayer(Players.get(0));
+        
+        //Get attributes and summary of Player
+        getAttributesAndSummary(idPlayer);
+        
+        //Create plugin folder if dosent exist
+        createPluginFolder(FOLDER);
+        
+        //WebSocketServer Initialize and Start
+        websock = new WebSocketServerInit("");
+        websock.run();
+        
+        //Search and start plugins
+        searchPlugins(FOLDER);
+        
+        //Run thread of directory of plugins watcher
+        Runnable process = new DirectoryWatcher();
+        watcherProcess = new Thread(process);
+        watcherProcess.start();
+        
+        launch(args);
+        
+        closeAll();
+    }
     
     
     public void createTrayIcon(final Stage stage) {
@@ -158,7 +191,7 @@ public class BGFApp extends Application {
                 //image = ImageIO.read(new File(System.getProperty("user.dir")+"\\dist\\icons\\BGTranns.png"));
                 
             } catch (IOException ex) {
-                System.out.println(ex);
+                //System.out.println(ex);
             }
 
 
@@ -177,7 +210,7 @@ public class BGFApp extends Application {
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     //System.exit(0);
                     tray.remove(trayIcon);
-                    stage.close();
+                    //stage.close();
                     closeAll();
                     System.exit(0);
                 }
@@ -244,53 +277,30 @@ public class BGFApp extends Application {
         });
     }
     
-    /**
-     * 
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) throws IOException, JSONException{
-        
-        //Only have one player in this app
-        //PlayerConecction();
-        Players.add(1);
-        setId(Players.get(0));
-   
-        getAttributesAndSummary(id);
-        
-        createPluginFolder(folder);
-        //WebSocketServer Initialize and Start
-        websock = new WebSocketServerInit("");
-        websock.run();
-        
-        //Search and start plugins
-        searchPlugins(folder);
-        
-        Runnable process = new DirectoryWatcher();
-        
-        
-        watcherProcess = new Thread(process);
-        watcherProcess.start();
-        
-        launch(args);
-        
-        closeAll();
-                       
-        //System.exit(0);
-    }
+    
     
     //Function for get Attributes an summary of IdPlayer
     private static void getAttributesAndSummary(int idPlayer){
-        System.out.println("Connecting to virtual profile of player");
+        //System.out.println("Connecting to virtual profile of player");
         try {
             
-            System.out.println("Identificator of player is:" +idPlayer);
-            Send_HTTP_Request2.call_resum_attributes(attributes,"http://localhost:3030/getAttributesSummary/"+Integer.toString(idPlayer));
-            Send_HTTP_Request2.call_all_attributes(attributesAll,"http://localhost:3030/getAttributes/"+Integer.toString(idPlayer));
+            //System.out.println("Identificator of player is:" +idPlayer);
+            Send_HTTP_Request2.call_resum_attributes(attributes,SUMMARY_HOST+Integer.toString(idPlayer));
+            Send_HTTP_Request2.call_all_attributes(attributesAll,ATTRIBUTES_HOST+Integer.toString(idPlayer));
         } catch (Exception e) {
-            System.out.println("-- Failed to connect to information microservices --");
+            //System.out.println("-- Failed to connect to information microservices --");
        }
     }
-
+    
+    //Function for get Attributes an summary of IdPlayer
+    private static void getIDofPlayer(String Name, String Password){
+        //System.out.println("Connecting to virtual profile of player");
+        try {
+            Send_HTTP_Request2.call_id_Player(idPlayer,ACCOUNTS_HOST,"name","password");
+        } catch (Exception e) {
+            //System.out.println("-- Failed to connect to information microservices --");
+       }
+    }
     //Close all threads and stop app
     private static void closeAll(){
         socket.disconnect();
@@ -302,27 +312,27 @@ public class BGFApp extends Application {
         }
         watcherProcess.interrupt();
         //ThreadWebSocket.interrupt();
-        System.out.println("WebSocket interrupt! ");
+        //System.out.println("WebSocket interrupt! ");
                 
         for (int i = 0; i < sensorsSubs.size(); i++) {
-            System.out.println("Killing sensors...: " + i);
+            //System.out.println("Killing sensors...: " + i);
             sensorsSubs.get(i).Stopp();
         }
-        System.out.println("He left the For to close Sensors!");
+        //System.out.println("He left the For to close Sensors!");
     }
     
     /**
-     * @return the id
+     * @return the idPlayer
      */
-    public static int getId() {
-        return id;
+    public static int getIdPlayer() {
+        return idPlayer;
     }
 
     /**
-     * @param aId the id to set
+     * @param aId the idPlayer to set
      */
-    public static void setId(int aId) {
-        id = aId;
+    public static void setIdPlayer(int aId) {
+        idPlayer = aId;
     }
     
     
@@ -339,7 +349,7 @@ public class BGFApp extends Application {
     }
     
     private static void createPluginFolder(String folder){
-        //Init folder of plugins
+        //Init FOLDER of plugins
         if (Files.notExists(Paths.get(folder))) {
             // automatically created
             File dir = new File("dist\\plugins");
@@ -364,7 +374,8 @@ public class BGFApp extends Application {
         if (jars.length >=1){
             for (int i=0; i<jars.length; i++) {
                 //Sensor added
-                sensor = new SensorSubject("Jaime",jars[i], getId());
+                sensor = new SensorSubject(nameAccount,jars[i], getIdPlayer());
+                sensor.setHostWebSocket(WEBSOCKET_HOST);
                 sensor.addObvserver(obsp);
                 sensorsSubs.add(sensor);
                 sensor.start();

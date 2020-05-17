@@ -6,8 +6,10 @@
 package bgapp.utiilities;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
@@ -30,8 +32,8 @@ public class Send_HTTP_Request2 {
          //add request header
          con.setRequestProperty("User-Agent", "Mozilla/5.0");
          int responseCode = con.getResponseCode();
-         System.out.println("\nSending 'GET' request to URL : " + url);
-         System.out.println("Response Code : " + responseCode);
+         //System.out.println("\nSending 'GET' request to URL : " + url);
+         //System.out.println("Response Code : " + responseCode);
          BufferedReader in = new BufferedReader(
                  new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
          String inputLine;
@@ -41,7 +43,7 @@ public class Send_HTTP_Request2 {
          }
          in.close();
          //print in String
-         System.out.println(response.toString());
+         //System.out.println(response.toString());
          //Read JSON response and print
 
          String aux = (response.toString()).substring(1, (response.toString()).length()-1);
@@ -58,7 +60,7 @@ public class Send_HTTP_Request2 {
              if (contador !=0){
              auxString = "{"+attribute+"}";
              myResponse = new JSONObject(auxString);
-             System.out.println("Linea ------: "+myResponse.length());
+             //System.out.println("Linea ------: "+myResponse.length());
              try{
                  attaux = new PlayerSummaryAttribute();
                  attaux.setId(myResponse.getInt("id_attributes"));
@@ -100,8 +102,8 @@ public class Send_HTTP_Request2 {
          //add request header
          con.setRequestProperty("User-Agent", "Mozilla/5.0");
          int responseCode = con.getResponseCode();
-         System.out.println("\nSending 'GET' request to URL : " + url);
-         System.out.println("Response Code : " + responseCode);
+         //System.out.println("\nSending 'GET' request to URL : " + url);
+         //System.out.println("Response Code : " + responseCode);
          BufferedReader in = new BufferedReader(
                  new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
          String inputLine;
@@ -112,7 +114,7 @@ public class Send_HTTP_Request2 {
          in.close();
          //print in String
          String string = Normalizer.normalize(response.toString(), Normalizer.Form.NFD);
-         System.out.println(string);
+         //System.out.println(string);
                  //.replaceAll("[^\\p{ASCII}]", ));
          //Read JSON response and print
 
@@ -131,7 +133,7 @@ public class Send_HTTP_Request2 {
              if (contador !=0){
              auxString = "{"+attribute+"}";
              myResponse = new JSONObject(auxString);
-             System.out.println("Linea ------: "+myResponse.length());
+             //System.out.println("Linea ------: "+myResponse.length());
              try{
                  attaux = new AttributePlayer();
                  attaux.setId(myResponse.getInt("id_subattributes"));
@@ -162,6 +164,37 @@ public class Send_HTTP_Request2 {
           result = str.substring(0, str.length() - 1);
        }
        return result;
+    }
+
+    
+    //Change this if you create a new method to managment accounts
+    public static void call_id_Player(int id, String HOST, String name, String password) throws MalformedURLException, IOException {
+        String url = HOST+"//"+name+"//"+password;
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        // optional default is GET
+        con.setRequestMethod("GET");
+        //add request header
+        con.setRequestProperty("User-Agent", "Mozilla/5.0");
+        int responseCode = con.getResponseCode();
+        //System.out.println("\nSending 'GET' request to URL : " + url);
+        //System.out.println("Response Code : " + responseCode);
+        StringBuffer response;
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
+            String inputLine;
+            response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+        }
+        //print in String
+        //System.out.println(response.toString());
+        //Read JSON response and print
+
+        String aux = (response.toString()).substring(1, (response.toString()).length()-1);
+        
+        id = 1;
     }
 
 }
