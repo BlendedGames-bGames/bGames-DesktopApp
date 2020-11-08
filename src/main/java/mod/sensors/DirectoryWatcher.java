@@ -33,7 +33,6 @@ public class DirectoryWatcher implements Runnable {
     File[] jars;
     public static ArrayList<String> SensorsStringList= new ArrayList(); //BORRAR
     String pahtName;
-    private WatchService watcher;
     private Thread watcherThread;
     private static SensorSubject sensor;
    

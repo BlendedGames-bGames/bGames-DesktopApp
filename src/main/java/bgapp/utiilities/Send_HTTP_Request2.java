@@ -22,7 +22,11 @@ import org.json.JSONObject;
  */
 public class Send_HTTP_Request2 {
 
-        
+    /*
+    * Input: Void array of a player's summary of attributes
+    * Output: Full array of data
+    * Description: HTTPUrlConnection for the HTTP request, reformat the output of the request and adding it to the array
+    */    
     public static void call_resum_attributes(ArrayList<PlayerSummaryAttribute> attributes, String urlEnter ) throws Exception {
          String url = urlEnter;
          URL obj = new URL(url);
@@ -32,8 +36,8 @@ public class Send_HTTP_Request2 {
          //add request header
          con.setRequestProperty("User-Agent", "Mozilla/5.0");
          int responseCode = con.getResponseCode();
-         //System.out.println("\nSending 'GET' request to URL : " + url);
-         //System.out.println("Response Code : " + responseCode);
+         System.out.println("\nSending 'GET' request to URL : " + url);
+         System.out.println("Response Code : " + responseCode);
          BufferedReader in = new BufferedReader(
                  new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
          String inputLine;
@@ -50,9 +54,9 @@ public class Send_HTTP_Request2 {
 
 
          String[] resumeAttributes;
-                resumeAttributes = aux.split("\\}\\,\\{|\\{|\\}");
+         resumeAttributes = aux.split("\\}\\,\\{|\\{|\\}");
 
-              PlayerSummaryAttribute attaux;
+         PlayerSummaryAttribute attaux;
          JSONObject myResponse;
          String auxString;
          int contador = 0;
@@ -92,7 +96,11 @@ public class Send_HTTP_Request2 {
          System.out.println("countryCode- "+attributes.getString("countryCode"));*/
        }
 
-
+    /*
+    * Input: Void array of a player's attributes
+    * Output: Full array of data
+    * Description: HTTPUrlConnection for the HTTP request, reformat the output of the request and adding it to the array
+     */
     public static void call_all_attributes(ArrayList<AttributePlayer> attributes,String urlEnter) throws Exception {
          String url = urlEnter;
          URL obj = new URL(url);
@@ -157,7 +165,11 @@ public class Send_HTTP_Request2 {
 
        }
 
-
+    /*
+    * Input: Full string
+    * Output: String without the last character
+    * Description: Encapsulation of a simple function
+     */
     public static String removeLastCharacter(String str) {
        String result = null;
        if ((str != null) && (str.length() > 0)) {
@@ -167,9 +179,13 @@ public class Send_HTTP_Request2 {
     }
 
     
-    //Change this if you create a new method to managment accounts
+    /*
+    * Input: Authentication Microservice's host url and player's name and password to be log in
+    * Output: Player's id if it exists in the database
+    * Description: HTTPUrlConnection for the HTTP request, reformat the output of the request storing the player's id
+     */
     public static void call_id_Player(int id, String HOST, String name, String password) throws MalformedURLException, IOException {
-        String url = HOST+"//"+name+"//"+password;
+        String url = HOST+name+"/"+password;
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         // optional default is GET
@@ -177,8 +193,8 @@ public class Send_HTTP_Request2 {
         //add request header
         con.setRequestProperty("User-Agent", "Mozilla/5.0");
         int responseCode = con.getResponseCode();
-        //System.out.println("\nSending 'GET' request to URL : " + url);
-        //System.out.println("Response Code : " + responseCode);
+        System.out.println("\nSending 'GET' request to URL : " + url);
+        System.out.println("Response Code : " + responseCode);
         StringBuffer response;
         try (BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
@@ -189,12 +205,14 @@ public class Send_HTTP_Request2 {
             }
         }
         //print in String
-        //System.out.println(response.toString());
+        System.out.println("aqui deberia estar");
+        System.out.println(response.toString());
+        System.out.println("este es el resultado");
         //Read JSON response and print
 
         String aux = (response.toString()).substring(1, (response.toString()).length()-1);
-        
-        id = 1;
+
+        id = Integer.parseInt(aux);
     }
 
 }

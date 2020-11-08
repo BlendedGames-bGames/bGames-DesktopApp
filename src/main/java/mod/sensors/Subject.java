@@ -6,7 +6,6 @@
 package mod.sensors;
 
 import bgapp.utiilities.AttributePlayer;
-import bgapp.utiilities.AttributePlayer;
 
 /**
  *

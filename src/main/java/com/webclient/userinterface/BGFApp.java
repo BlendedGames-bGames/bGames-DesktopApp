@@ -51,12 +51,12 @@ public class BGFApp extends Application {
     public static final String WEBSOCKET_HOST = "http://localhost:8003";
     private static final String ATTRIBUTES_HOST = "http://localhost:3030/getAttributes/";
     private static final String SUMMARY_HOST = "http://localhost:3030/getAttributesSummary/";
-    private static final String ACCOUNTS_HOST = "http://localhost:3030/accounts/";
+    private static final String ACCOUNTS_HOST = "http://localhost:3000/player/";
     
     
     //Account vars
-    public static String nameAccount = "Jaime";
-    public static int idPlayer = 0; // Or idPlayer of player init the app
+    public static String nameAccount = "Player1";
+    public static int idPlayer = 1; // Or idPlayer of player init the app
     public static ArrayList<Integer> Players = new ArrayList();
     
     //Minimize vars
@@ -85,78 +85,18 @@ public class BGFApp extends Application {
     public static FXMLController myControllerHandle;
     private Stage stage0;
     
-    
-    
-    @Override
-    public void start(Stage stage) throws Exception {
-        this.stage0 = stage;
-              
-               
-        //set tray icon
-        createTrayIcon(stage0);
-        firstTime = true;
-        Platform.setImplicitExit(false);
-        
-        //Set up instance instead of using static load() method
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
-        Parent root = loader.load();
-
-        //Now we have access to getController() through the instance... don't forget the type cast
-        myControllerHandle = (FXMLController)loader.getController();
-        myControllerHandle.buttonReconnectSens.setText("Reset sensors");
-        
-        //Button event
-        myControllerHandle.buttonReconnectSens.setOnAction((event)->{
-            // Button was clicked, do something...
-            for (int i = 0; i < sensorsSubs.size(); i++) {
-                //System.out.println("Kill thread of sensors: " + i);
-                sensorsSubs.get(i).Stopp();
-            }
-            ListSensors.clear();
-            myControllerHandle.reloadDataForTables();
-            //System.out.println("Exit if kill threads of sensors!");
-            for (int i = 0; i < sensorsSubs.size(); i++) {
-                //System.out.println("Star thread of sensors: " + i);
-                sensorsSubs.get(i).start();
-            }
-            //System.out.println("OK all thread of sensors Start!");
-            
-        });
-        
-        Scene scene = new Scene(root);
-        //Set Image icon to app
-        //Image icon = new Image("dist/image");
-        //stage.getIcons().add(icon);
-        scene.getStylesheets().add("/styles/Styles.css");
-        
-        stage0.setScene(scene);
-        stage0.show();
-        
-        File currentDirFile = new File(".");
-        String helper = currentDirFile.getAbsolutePath();
-        String currentDir = helper.substring(0, helper.length() - currentDirFile.getCanonicalPath().length());//this line may need a try-catch block
-
-        socketComunicationInit(WEBSOCKET_HOST);
-    }
-
-    
-    
-    /**
-     * 
-     * @param args the command line arguments
-     */
+      
     public static void main(String[] args) throws IOException, JSONException{
         
         //Only have one player in this app
         //PlayerGetPassword();
-        String password = "nothing";
+        String password = "pass001";
         getIDofPlayer(nameAccount,password);
         Players.add(idPlayer);
         setIdPlayer(Players.get(0));
-        
         //Get attributes and summary of Player
+        System.out.println(idPlayer);
         getAttributesAndSummary(idPlayer);
-        
         //Create plugin folder if dosent exist
         createPluginFolder(FOLDER);
         
@@ -177,7 +117,152 @@ public class BGFApp extends Application {
         closeAll();
     }
     
+  
+      
     
+    
+    /*
+    
+          USER DATA SECTION
+    
+    
+    */
+        
+    
+    /*
+    * Input: Id of a player (range 0 to positive int)
+    * Output: Set PlayerSummaryAttribute array 
+    * Description: Gets all the attributes and the summary of them of an specific player
+    * to be rendered in the javaFX interface
+    */
+    private static void getAttributesAndSummary(int idPlayer){
+        //System.out.println("Connecting to virtual profile of player");
+        try {            
+            //System.out.println("Identificator of player is:" +idPlayer);
+            Send_HTTP_Request2.call_resum_attributes(attributes,SUMMARY_HOST+Integer.toString(idPlayer));
+            Send_HTTP_Request2.call_all_attributes(attributesAll,ATTRIBUTES_HOST+Integer.toString(idPlayer));
+        } catch (Exception e) {
+            //System.out.println("-- Failed to connect to information microservices --");
+       }
+    }
+    
+    /*
+    * Input: Name and password of a player
+    * Output: Id of the player (range 0 to positive int)
+    * Description: Passes both parameters to be validated by the respective authentication microservice and get the user's id
+    */
+    private static void getIDofPlayer(String Name, String Password){
+        System.out.println("Connecting to virtual profile of player");
+        try {
+            Send_HTTP_Request2.call_id_Player(idPlayer,ACCOUNTS_HOST,Name,Password);
+        } catch (Exception e) {
+            //System.out.println("-- Failed to connect to information microservices --");
+       }
+    }
+   
+    /*
+    * Description: @return the idPlayer
+    */
+    public static int getIdPlayer() {
+        return idPlayer;
+    }
+
+    /*
+     * Description: @set the idPlayer
+    */
+    public static void setIdPlayer(int aId) {
+        idPlayer = aId;
+    }
+    
+    
+    
+    
+    
+    
+    
+    /*
+    
+          USER INTERFACE SECTION
+    
+    
+    */    
+        
+    /*
+    * Input: Name of the plugin folder in string format
+    * Output: Styled user interface with the corresponding listeners of the components 
+    * Description: Creates the trayIcon (typical top right buttons), header and css (fxml file) and initializes the websocket channel
+    */
+    @Override
+    public void start(Stage stage) throws Exception {
+        this.stage0 = stage;
+
+        //set tray icon
+        createTrayIcon(stage0);
+        firstTime = true;
+        Platform.setImplicitExit(false);
+
+        //Set up instance instead of using static load() method
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
+        Parent root = loader.load();
+
+        //Now we have access to getController() through the instance... don't forget the type cast
+        myControllerHandle = (FXMLController) loader.getController();
+        myControllerHandle.buttonReconnectSens.setText("Reset sensors");
+
+        //Button event
+        myControllerHandle.buttonReconnectSens.setOnAction((event) -> {
+            // Button was clicked, do something...
+            for (int i = 0; i < sensorsSubs.size(); i++) {
+                //System.out.println("Kill thread of sensors: " + i);
+                sensorsSubs.get(i).Stopp();
+            }
+            ListSensors.clear();
+            myControllerHandle.reloadDataForTables();
+            //System.out.println("Exit if kill threads of sensors!");
+            for (int i = 0; i < sensorsSubs.size(); i++) {
+                //System.out.println("Star thread of sensors: " + i);
+                sensorsSubs.get(i).start();
+            }
+            //System.out.println("OK all thread of sensors Start!");
+
+        });
+
+        Scene scene = new Scene(root);
+        //Set Image icon to app
+        //Image icon = new Image("dist/image");
+        //stage.getIcons().add(icon);
+        scene.getStylesheets().add("/styles/Styles.css");
+
+        stage0.setScene(scene);
+        stage0.show();
+
+        File currentDirFile = new File(".");
+        String helper = currentDirFile.getAbsolutePath();
+        String currentDir = helper.substring(0, helper.length() - currentDirFile.getCanonicalPath().length());//this line may need a try-catch block
+
+        socketComunicationInit(WEBSOCKET_HOST);
+    }
+
+    
+    /*
+    * Input: PersonOverview.fxml file
+    * Output: Data tables reloaded
+    * Description: Shows the person overview inside the root layout.
+    */
+    public void showOverview() {
+        // Load overview.
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(BGFApp.class.getResource("view/PersonOverview.fxml"));
+        // Give the controller access to the main app.
+        FXMLController controller = loader.getController();
+        controller.reloadDataForTables();
+    }
+    
+    /*
+    * Input: Blended games icon in a CDN backup
+    * Output: Tray icons and header of the UI with the corresponding listeners
+    * Description: Simple initialization boilderplate that describes itself
+     */
     public void createTrayIcon(final Stage stage) {
         if (SystemTray.isSupported()) {
             // get the SystemTray instance
@@ -189,11 +274,10 @@ public class BGFApp extends Application {
                 image = ImageIO.read(url);
                 //image = Toolkit.getDefaultToolkit().getImage("images/BGTanns.png");
                 //image = ImageIO.read(new File(System.getProperty("user.dir")+"\\dist\\icons\\BGTranns.png"));
-                
+
             } catch (IOException ex) {
                 //System.out.println(ex);
             }
-
 
             stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
                 @Override
@@ -253,7 +337,11 @@ public class BGFApp extends Application {
         }
     }
     
-    
+    /*
+    * Input: trayIcon
+    * Output: Message that informs the user that Blended Games is actually wroking in the background
+    * Description: SelfExplanatory
+     */
     public void showProgramIsMinimizedMsg() {
         if (firstTime) {
             trayIcon.displayMessage("Blended Games Framework.",
@@ -263,6 +351,12 @@ public class BGFApp extends Application {
         }
     }
 
+    
+    /*
+    * Input: trayIcon
+    * Output: Hides the UI
+    * Description: SelfExplanatory
+     */
     private void hide(final Stage stage) {
         Platform.runLater(new Runnable() {
             @Override
@@ -276,78 +370,23 @@ public class BGFApp extends Application {
             }
         });
     }
-    
-    
-    
-    //Function for get Attributes an summary of IdPlayer
-    private static void getAttributesAndSummary(int idPlayer){
-        //System.out.println("Connecting to virtual profile of player");
-        try {
-            
-            //System.out.println("Identificator of player is:" +idPlayer);
-            Send_HTTP_Request2.call_resum_attributes(attributes,SUMMARY_HOST+Integer.toString(idPlayer));
-            Send_HTTP_Request2.call_all_attributes(attributesAll,ATTRIBUTES_HOST+Integer.toString(idPlayer));
-        } catch (Exception e) {
-            //System.out.println("-- Failed to connect to information microservices --");
-       }
-    }
-    
-    //Function for get Attributes an summary of IdPlayer
-    private static void getIDofPlayer(String Name, String Password){
-        //System.out.println("Connecting to virtual profile of player");
-        try {
-            Send_HTTP_Request2.call_id_Player(idPlayer,ACCOUNTS_HOST,"name","password");
-        } catch (Exception e) {
-            //System.out.println("-- Failed to connect to information microservices --");
-       }
-    }
-    //Close all threads and stop app
-    private static void closeAll(){
-        socket.disconnect();
-        socket.close();
-        try {
-            websock.stop();
-        } catch (IOException ex) {
-            Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        watcherProcess.interrupt();
-        //ThreadWebSocket.interrupt();
-        //System.out.println("WebSocket interrupt! ");
-                
-        for (int i = 0; i < sensorsSubs.size(); i++) {
-            //System.out.println("Killing sensors...: " + i);
-            sensorsSubs.get(i).Stopp();
-        }
-        //System.out.println("He left the For to close Sensors!");
-    }
-    
-    /**
-     * @return the idPlayer
-     */
-    public static int getIdPlayer() {
-        return idPlayer;
-    }
 
-    /**
-     * @param aId the idPlayer to set
-     */
-    public static void setIdPlayer(int aId) {
-        idPlayer = aId;
-    }
+      
+    
+        
+      
+    /*
+    
+          SENSOR PLUGINS SECTION
     
     
-    /**
- * Shows the person overview inside the root layout.
- */
-    public void showOverview() {
-        // Load overview.
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(BGFApp.class.getResource("view/PersonOverview.fxml"));
-        // Give the controller access to the main app.
-        FXMLController controller = loader.getController();
-        controller.reloadDataForTables();
-    }
-    
+    */
+            
+    /*
+    * Input: Name of the plugin folder in string format
+    * Output: Created folder with the named passed beforehand
+    * Description: Checks if the folder isn't created and if it's not, then create it
+    */
     private static void createPluginFolder(String folder){
         //Init FOLDER of plugins
         if (Files.notExists(Paths.get(folder))) {
@@ -358,6 +397,12 @@ public class BGFApp extends Application {
         } 
     }
     
+    /*
+    * Input: Name of the plugin folder in string format
+    * Output: Calls the initPlugins function with an array of .jar files filled beforehand
+    * Description: Initializes the plugin folder and stores the files that contain a .jar extension in an array of File by
+    * looping over all the existing files
+    */    
     private static void searchPlugins(String folder){
         //Revisar Plugins en la carpeta Plugins
         File libs = new File(folder);
@@ -370,6 +415,12 @@ public class BGFApp extends Application {
         initPlugins(jars);
     }
     
+    /*
+    * Input: Array of Files (.jar extension only) that correspond to plugins
+    * Output: Started sensors correspondings to the plugins
+    * Description: Initiates the plugins by creating a sensorSubject, websocket channel, observer and finally starting 
+    * the observer pattern process
+    */    
     private static void initPlugins(File[] jars){
         if (jars.length >=1){
             for (int i=0; i<jars.length; i++) {
@@ -388,7 +439,11 @@ public class BGFApp extends Application {
         }
     }
     
-    //For communication of application with WebSocket server
+    /*
+    * Input: Web socket port host string
+    * Output: Started websocket channel
+    * Description: Boilerplate code for initiating a web socket server using Socket IO library
+     */
     public void socketComunicationInit(String WebSocketDir0) throws URISyntaxException{
         socket = IO.socket(WebSocketDir0);
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -452,6 +507,30 @@ public class BGFApp extends Application {
         
         
         socket.connect();
+    }
+    
+    /*
+    * Input: Websocket
+    * Output: Stops all the sensors and the websocket channel
+    * Description: Close all threads and stop app
+     */    
+    private static void closeAll(){
+        socket.disconnect();
+        socket.close();
+        try {
+            websock.stop();
+        } catch (IOException ex) {
+            Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        watcherProcess.interrupt();
+        //ThreadWebSocket.interrupt();
+        //System.out.println("WebSocket interrupt! ");
+                
+        for (int i = 0; i < sensorsSubs.size(); i++) {
+            //System.out.println("Killing sensors...: " + i);
+            sensorsSubs.get(i).Stopp();
+        }
+        //System.out.println("He left the For to close Sensors!");
     }
     
     
