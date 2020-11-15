@@ -49,10 +49,19 @@ public class BGFApp extends Application {
     // Init constants
     private static final String FOLDER = "dist/plugins";
     public static final String WEBSOCKET_HOST = "http://localhost:8003";
-    private static final String ATTRIBUTES_HOST = "http://localhost:3030/getAttributes/";
-    private static final String SUMMARY_HOST = "http://localhost:3030/getAttributesSummary/";
-    private static final String ACCOUNTS_HOST = "http://localhost:3000/player/";
+    //private static final String ATTRIBUTES_HOST2 = "http://localhost:3030/getAttributes/";
+    private static final String ATTRIBUTES_HOST = "https://bgames-attributedisplayconfig.herokuapp.com/getAttributes/";
+
+    //private static final String SUMMARY_HOST2 = "http://localhost:3030/getAttributesSummary/";
+    private static final String SUMMARY_HOST = "https://bgames-attributedisplayconfig.herokuapp.com/getAttributesSummary/";
     
+    private static final String SUMMARY_HOST_ATTRIBUTES = "http://localhost:3030/putAttributes/bycategory/";
+
+    //private static final String SUMMARY_HOST_ATTRIBUTES = "https://bgames-attributedisplayconfig.herokuapp.com/putAttributes/bycategory/";
+
+    //private static final String ACCOUNTS_HOST2 = "http://localhost:3000/player/";
+    private static final String ACCOUNTS_HOST = "https://bgames-configurationservice.herokuapp.com/player/";
+
     
     //Account vars
     public static String nameAccount = "Player1";
@@ -112,6 +121,7 @@ public class BGFApp extends Application {
         watcherProcess = new Thread(process);
         watcherProcess.start();
         
+        
         launch(args);
         
         closeAll();
@@ -141,6 +151,8 @@ public class BGFApp extends Application {
             //System.out.println("Identificator of player is:" +idPlayer);
             Send_HTTP_Request2.call_resum_attributes(attributes,SUMMARY_HOST+Integer.toString(idPlayer));
             Send_HTTP_Request2.call_all_attributes(attributesAll,ATTRIBUTES_HOST+Integer.toString(idPlayer));
+            Send_HTTP_Request2.reduce_attribute_player(attributes,SUMMARY_HOST_ATTRIBUTES+Integer.toString(idPlayer)+"/"+"Físico",Integer.toString(idPlayer), "Físico");
+
         } catch (Exception e) {
             //System.out.println("-- Failed to connect to information microservices --");
        }
@@ -506,7 +518,7 @@ public class BGFApp extends Application {
           });
         
         
-        socket.connect();
+         socket.connect();
     }
     
     /*

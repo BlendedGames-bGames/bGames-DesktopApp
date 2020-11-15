@@ -8,6 +8,7 @@ package bgapp.utiilities;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import org.json.JSONObject;
-
+        
 /**
  * API REST Requests
  * @author Bad-K
@@ -178,7 +179,70 @@ public class Send_HTTP_Request2 {
        return result;
     }
 
-    
+    /*
+    * Input: Void array of a player's summary of attributes
+    * Output: Full array of data
+    * Description: HTTPUrlConnection for the HTTP request, reformat the output of the request and adding it to the array
+    */    
+    public static void reduce_attribute_player(ArrayList<PlayerSummaryAttribute> attributes, String urlEnter, String id_player, String attName ) throws Exception {
+        System.out.println(urlEnter);
+        int dataToModify = 0;
+        for(PlayerSummaryAttribute att : attributes){
+            if(att.getName().equals(attName)){
+                dataToModify = att.getData();
+            }
+        }
+        System.out.println("Linea 0: "+attributes.get(0).getName());
+        System.out.println("Linea 1: "+attributes.get(1).getName());
+        System.out.println("Linea 2: "+attributes.get(2).getName());
+        
+        //Aqui se resta el atributo procesado en algun numero o porcentaje (ej 5)
+        //Esto implica que se 'consumio'
+        //luego de esto se va al juego para que sea utilizado
+        String dataToModifyStr = Integer.toString(dataToModify-5);
+      
+        String resultJson = new JSONObject().put("id_player", id_player).put("namecategory", attName).put("data", dataToModifyStr).toString();
+        
+        System.out.println(resultJson);
+        
+        String url = urlEnter;
+        URL obj = new URL(url);
+        HttpURLConnection con = null;
+        DataOutputStream dataOutputStream = null;
+        try {
+            con = (HttpURLConnection) obj.openConnection();
+            // PUT
+            con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.setRequestMethod("PUT");         
+            dataOutputStream = new DataOutputStream(con.getOutputStream());
+            dataOutputStream.writeUTF(resultJson);
+            dataOutputStream.close();
+            con.getInputStream();
+        }
+        catch (IOException exception) {
+            exception.printStackTrace();
+        }finally {
+            if (dataOutputStream != null) {
+                try {
+                    dataOutputStream.flush();
+                    dataOutputStream.close();
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
+            }
+            if (con != null) {
+                con.disconnect();
+            }
+       
+        
+         
+         
+      }
+    }
+
     /*
     * Input: Authentication Microservice's host url and player's name and password to be log in
     * Output: Player's id if it exists in the database
