@@ -187,22 +187,26 @@ public class Send_HTTP_Request2 {
     public static void reduce_attribute_player(ArrayList<PlayerSummaryAttribute> attributes, String urlEnter, String id_player, String attName ) throws Exception {
         System.out.println(urlEnter);
         int dataToModify = 0;
+        int idAttributeToModify = 0;
         for(PlayerSummaryAttribute att : attributes){
             if(att.getName().equals(attName)){
                 dataToModify = att.getData();
+                idAttributeToModify = att.getId();
             }
         }
         System.out.println("Linea 0: "+attributes.get(0).getName());
         System.out.println("Linea 1: "+attributes.get(1).getName());
         System.out.println("Linea 2: "+attributes.get(2).getName());
         
+        System.out.println(idAttributeToModify);
         //Aqui se resta el atributo procesado en algun numero o porcentaje (ej 5)
         //Esto implica que se 'consumio'
         //luego de esto se va al juego para que sea utilizado
-        String dataToModifyStr = Integer.toString(dataToModify-5);
-      
+        String dataToModifyStr = Integer.toString(dataToModify-1);                                    
+        attributes.get(idAttributeToModify-1).setData(dataToModify-1);
+        System.out.println("hola como");
+
         String resultJson = new JSONObject().put("id_player", id_player).put("namecategory", attName).put("data", dataToModifyStr).toString();
-        
         System.out.println(resultJson);
         
         String url = urlEnter;

@@ -31,6 +31,8 @@ public class FXMLController implements Initializable {
     @FXML
     public Button buttonReconnectSens;
     @FXML
+    public Button buttonConsumeAtt;
+    @FXML
     private BarChart attributesBar;
     @FXML
     private TableView<AttributePlayer> attributesTable;
@@ -63,7 +65,9 @@ public class FXMLController implements Initializable {
     public void handleButtonReconnectSensAction(ActionEvent event) {
         //label.setText("Hello World!");
     }
-    
+    public void handleButtonConsumeBatchAttributes(ActionEvent event) {
+        //label.setText("Hello World!");
+    }
     @FXML
     public void handleButtonMinAction(ActionEvent event) {
         // get a handle to the stage

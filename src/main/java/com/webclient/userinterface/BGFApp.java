@@ -44,6 +44,9 @@ import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.stage.WindowEvent;
 import javax.imageio.ImageIO;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class BGFApp extends Application {
     // Init constants
@@ -55,9 +58,9 @@ public class BGFApp extends Application {
     //private static final String SUMMARY_HOST2 = "http://localhost:3030/getAttributesSummary/";
     private static final String SUMMARY_HOST = "https://bgames-attributedisplayconfig.herokuapp.com/getAttributesSummary/";
     
-    private static final String SUMMARY_HOST_ATTRIBUTES = "http://localhost:3030/putAttributes/bycategory/";
+    //private static final String SUMMARY_HOST_ATTRIBUTES = "http://localhost:3030/putAttributes/bycategory/";
 
-    //private static final String SUMMARY_HOST_ATTRIBUTES = "https://bgames-attributedisplayconfig.herokuapp.com/putAttributes/bycategory/";
+    private static final String SUMMARY_HOST_ATTRIBUTES = "https://bgames-attributedisplayconfig.herokuapp.com/putAttributes/bycategory/";
 
     //private static final String ACCOUNTS_HOST2 = "http://localhost:3000/player/";
     private static final String ACCOUNTS_HOST = "https://bgames-configurationservice.herokuapp.com/player/";
@@ -67,6 +70,64 @@ public class BGFApp extends Application {
     public static String nameAccount = "Player1";
     public static int idPlayer = 1; // Or idPlayer of player init the app
     public static ArrayList<Integer> Players = new ArrayList();
+
+    private static void batchDataSpendQuestion() {
+        Object[] options = {"Yes, please",
+                    "No way!"};
+        JFrame frame = new JFrame();
+        int n = JOptionPane.showOptionDialog(frame,
+            "Would you like to spend your physical attribute data in the unity pong game ?",
+            "Pedometer sensor question",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,     //do not use a custom Icon
+            options,  //the titles of buttons
+            options[0]); //default button title
+        
+        System.out.println(n);
+        if(n == 0){
+            //System.out.println("Data Found: " + _connection.getData());
+            //notifica(this._sensorNeed);
+             try {            
+           
+              Send_HTTP_Request2.reduce_attribute_player(attributes,SUMMARY_HOST_ATTRIBUTES+Integer.toString(idPlayer)+"/"+"Físico",Integer.toString(idPlayer), "Físico");
+
+            } catch (Exception e) {
+                //System.out.println("-- Failed to connect to information microservices --");
+            }
+            JSONObject obj = new JSONObject();
+            JSONObject obj2 = new JSONObject();
+
+            try {
+                obj.put("room", "SensorCerebral");
+                obj.put("name", "Mindwave");
+                java.util.Date dt = new java.util.Date();
+
+                java.text.SimpleDateFormat dataTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+                String currentTime = dataTime.format(dt);
+
+
+                obj2.put("id_player", idPlayer);
+                obj2.put("nameat", "Resistencia");
+                obj2.put("namecategory", "Físico");
+                obj2.put("data", 50);
+                obj2.put("data_type", "por.on");
+                obj2.put("input_source", "ericblue.mindstream.client.ThinkGearSocketClient - Mindwave.Mobile: MW003");
+                obj2.put("date_time", currentTime);
+                obj.put("message",obj2);
+                socket2.emit("message",obj);  
+            } catch (JSONException ex) {
+            }
+
+            socket2.emit("AllSensors");
+            
+        }
+        
+        
+    }
+
+   
     
     //Minimize vars
     //DisplayTrayIcon DTI = new DisplayTrayIcon();
@@ -89,12 +150,13 @@ public class BGFApp extends Application {
     //Socket for WebSocket communication
     private static WebSocketServerInit websock;
     public static Socket socket;
-        
+    public static Socket socket2;
+
     //FMX Controller
     public static FXMLController myControllerHandle;
     private Stage stage0;
     
-      
+   
     public static void main(String[] args) throws IOException, JSONException{
         
         //Only have one player in this app
@@ -112,15 +174,21 @@ public class BGFApp extends Application {
         //WebSocketServer Initialize and Start
         websock = new WebSocketServerInit("");
         websock.run();
+        System.out.println("Ya existe el websocketserver en el 8001");
         
+        socketCommunicationPodometer();
+        JSONObject obj = new JSONObject();
+
+        obj.put("room", "SensorCerebral");
+        obj.put("name", "Mindwave");
+        socket2.emit("join_sensor", obj);
+
         //Search and start plugins
         searchPlugins(FOLDER);
-        
         //Run thread of directory of plugins watcher
         Runnable process = new DirectoryWatcher();
         watcherProcess = new Thread(process);
         watcherProcess.start();
-        
         
         launch(args);
         
@@ -151,7 +219,6 @@ public class BGFApp extends Application {
             //System.out.println("Identificator of player is:" +idPlayer);
             Send_HTTP_Request2.call_resum_attributes(attributes,SUMMARY_HOST+Integer.toString(idPlayer));
             Send_HTTP_Request2.call_all_attributes(attributesAll,ATTRIBUTES_HOST+Integer.toString(idPlayer));
-            Send_HTTP_Request2.reduce_attribute_player(attributes,SUMMARY_HOST_ATTRIBUTES+Integer.toString(idPlayer)+"/"+"Físico",Integer.toString(idPlayer), "Físico");
 
         } catch (Exception e) {
             //System.out.println("-- Failed to connect to information microservices --");
@@ -238,6 +305,12 @@ public class BGFApp extends Application {
             //System.out.println("OK all thread of sensors Start!");
 
         });
+        //Button event
+        myControllerHandle.buttonConsumeAtt.setOnAction((event) -> {
+            batchDataSpendQuestion();
+
+        });
+
 
         Scene scene = new Scene(root);
         //Set Image icon to app
@@ -251,8 +324,10 @@ public class BGFApp extends Application {
         File currentDirFile = new File(".");
         String helper = currentDirFile.getAbsolutePath();
         String currentDir = helper.substring(0, helper.length() - currentDirFile.getCanonicalPath().length());//this line may need a try-catch block
+        
 
         socketComunicationInit(WEBSOCKET_HOST);
+       
     }
 
     
@@ -425,6 +500,7 @@ public class BGFApp extends Application {
             }       
         });
         initPlugins(jars);
+        
     }
     
     /*
@@ -450,6 +526,89 @@ public class BGFApp extends Application {
             Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public static void socketCommunicationPodometer(){
+        try{
+              socket2 = IO.socket("http://localhost:8001");
+
+        }
+        catch (URISyntaxException ex) {
+            
+        }
+        socket2.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+        @Override
+        public void call(Object... os) {
+            System.out.println("Sensor connected to the websocket"); //To change body of generated methods, choose Tools | Templates.
+        }
+
+      }).on("join_sensor", new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            socket2.emit("SensorCerebral", "Mindwave Neurosky");
+        }
+
+      }).on("AllSensors", new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            try {
+                //System.out.println("Args[0] enter: "+args[0]);
+                JSONObject obj = (JSONObject)args[0];
+                System.out.println("Sensors: "+obj.getString("sensoresActivos"));
+            } catch (JSONException ex) {
+            }
+        }
+
+      }).on("message", new Emitter.Listener() {
+
+        @Override
+        public void call(Object... args) {
+            try {
+                JSONObject obj = (JSONObject)args[0];
+                System.out.println("Objet nome: "+obj.getString("name"));
+                System.out.println("Objet message: "+obj.getString("message"));
+            } catch (JSONException ex) {
+                System.out.println("Failed to get object or name");
+            }
+        }
+
+      }).on("Imessage", new Emitter.Listener() {
+
+        @Override
+        public void call(Object... args) {
+            try {
+                JSONObject obj = (JSONObject)args[0];
+                System.out.println("Objet nome: "+obj.getString("name"));
+                System.out.println("Objet message: "+obj.getString("message"));
+            } catch (JSONException ex) {
+                System.out.println("Failed to get object or name");
+            }
+        }
+
+      }).on("Smessage", new Emitter.Listener() {
+
+        @Override
+        public void call(Object... args) {
+            try {
+                JSONObject obj = (JSONObject)args[0];
+                System.out.println("Objet nome: "+obj.getString("name"));
+                System.out.println("Objet message: "+obj.getString("message"));
+            } catch (JSONException ex) {
+                System.out.println("Failed to get object or name");
+            }
+        }
+
+      }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+
+        @Override
+        public void call(Object... args) {}
+
+      });           
+      System.out.println("me conecte");
+
+      socket2.connect();
+
+    }
+    
     
     /*
     * Input: Web socket port host string

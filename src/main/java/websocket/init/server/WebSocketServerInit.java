@@ -5,9 +5,12 @@
  */
 package websocket.init.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -16,24 +19,27 @@ import java.util.logging.Logger;
 public class WebSocketServerInit{
     private String cmd = "cd websocket";
     private String dd = "dir";
-    private String initSocket = "npm start";
+    private String initSocket = "node index.js";
     
     public WebSocketServerInit(String OS) throws IOException {
+        File currentDirFile = new File("websocket");
+        cmd = currentDirFile.getAbsolutePath();
         if ("Unix".equals(OS)) {
             cmd = "cd websocket";
             dd = "";
-            initSocket = "npm start";
+            initSocket = "node index.js";
             
         }else{
             //System.out.println("You run Windows OS ? haha");
         }
     }
     
-        
+    
     //Stop
     public void stop() throws IOException{
-        initSocket = "npm stop";
-        Runtime.getRuntime().exec("cmd.exe /c" + cmd +"&&"  +initSocket); // npm stop
+        initSocket = "node stop.js";
+        Process process4 = Runtime.getRuntime().exec("cmd.exe /c "+ initSocket,null,new File(cmd)); // npm stop
+
     }
     
     
@@ -42,7 +48,8 @@ public class WebSocketServerInit{
         try {
             // PRUEBAAS!!!
             
-            Runtime.getRuntime().exec("cmd.exe /c" + cmd +"&&" +dd+"&&" +initSocket);
+            
+            Process process2 = Runtime.getRuntime().exec("cmd.exe /c "+ initSocket,null,new File(cmd));
             
             
             // PRUEBAAS!!!
