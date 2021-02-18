@@ -154,8 +154,11 @@ public class BGFApp extends Application {
 
     //FMX Controller
     public static FXMLController myControllerHandle;
+    public static LoginController LoginController;
+
     private Stage stage0;
     
+
    
     public static void main(String[] args) throws IOException, JSONException{
         

@@ -80,26 +80,12 @@ public class FXMLController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-        loadDataForBarChart();
         loadDataForAttributeTable();
         loadDataForAttributeTableSecond();
     }    
     
     
-    //Inicializa los datos del usuario en el Bar Chart
-    private void loadDataForBarChart(){
-                
-        //Serialización de los datos de la tabla
-        XYChart.Series serieDeDatos = new XYChart.Series();
-        serieDeDatos.setName("Atributos");
-        for(int x=0;x<attributes.size();x++) {
-            serieDeDatos.getData().add(new XYChart.Data<>(attributes.get(x).getName(),attributes.get(x).getData()));
-        }
-        
-        //Agregar datos al Bar Chart!
-        attributesBar.getData().add(serieDeDatos);
-        attributesBar.setLegendVisible(false);
-    }
+   
     
     //Inicializa los datos del usuario en la Tabla de atributos
     private void loadDataForAttributeTable(){
