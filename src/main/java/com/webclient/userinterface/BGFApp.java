@@ -36,11 +36,17 @@ import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.stage.WindowEvent;
 import javax.imageio.ImageIO;
@@ -138,6 +144,10 @@ public class BGFApp extends Application {
     //Attributes 
     public static ArrayList<PlayerSummaryAttribute> attributes= new ArrayList();
     public static ArrayList<AttributePlayer> attributesAll= new ArrayList();
+    
+    private static final String USER_AGENT = "Mozilla/5.0";
+
+    private static final String POST_URL = "http://144.126.216.255:3006/desktop_authentication_key";
     
     //Sensors 
     public static ArrayList<SensorNeed> ListSensors = new ArrayList();
@@ -284,37 +294,52 @@ public class BGFApp extends Application {
         Platform.setImplicitExit(false);
 
         //Set up instance instead of using static load() method
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
         Parent root = loader.load();
 
         //Now we have access to getController() through the instance... don't forget the type cast
-        myControllerHandle = (FXMLController) loader.getController();
-        myControllerHandle.buttonReconnectSens.setText("Reset sensors");
-
-        //Button event
-        myControllerHandle.buttonReconnectSens.setOnAction((event) -> {
-            // Button was clicked, do something...
-            for (int i = 0; i < sensorsSubs.size(); i++) {
-                //System.out.println("Kill thread of sensors: " + i);
-                sensorsSubs.get(i).Stopp();
+        LoginController = (LoginController) loader.getController();
+        LoginController.btnGoogle.setOnAction((ActionEvent event) -> {
+            String email = LoginController.txtEmail.getText();
+            String key = LoginController.txtKey.getText();
+            String provider = "google.com";
+            JSONObject resultJson;
+            try {
+                resultJson = new JSONObject().put("email", email).put("key", key).put("provider", provider);                
+                loginCall(resultJson);
+            } catch (JSONException | IOException ex) {
+                Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
             }
-            ListSensors.clear();
-            myControllerHandle.reloadDataForTables();
-            //System.out.println("Exit if kill threads of sensors!");
-            for (int i = 0; i < sensorsSubs.size(); i++) {
-                //System.out.println("Star thread of sensors: " + i);
-                sensorsSubs.get(i).start();
+            
+        });
+        LoginController.btnFacebook.setOnAction((ActionEvent event) -> {
+            String email = LoginController.txtEmail.getText();
+            String key = LoginController.txtKey.getText();
+            String provider = "facebook.com";
+            JSONObject resultJson;
+            try {
+                resultJson = new JSONObject().put("email", email).put("key", key).put("provider", provider);                
+                loginCall(resultJson);
+            } catch (JSONException | IOException ex) {
+                Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
             }
-            //System.out.println("OK all thread of sensors Start!");
 
         });
-        //Button event
-        myControllerHandle.buttonConsumeAtt.setOnAction((event) -> {
-            batchDataSpendQuestion();
-
+        LoginController.btnFirebase.setOnAction((ActionEvent event) -> {
+            String email = LoginController.txtEmail.getText();
+            String pass = LoginController.txtPass.getText();
+            String key = LoginController.txtKey.getText();
+            String provider = "firebase.com";
+            
+            JSONObject resultJson;
+            try {
+                resultJson = new JSONObject().put("email", email).put("pass", pass).put("key", key).put("provider", provider);
+                loginCall(resultJson);
+                
+            } catch (JSONException | IOException ex) {
+                Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
-
-
         Scene scene = new Scene(root);
         //Set Image icon to app
         //Image icon = new Image("dist/image");
@@ -705,6 +730,79 @@ public class BGFApp extends Application {
             sensorsSubs.get(i).Stopp();
         }
         //System.out.println("He left the For to close Sensors!");
+    }
+
+    public void loginCall(JSONObject userData) throws MalformedURLException, ProtocolException, IOException {
+        String userDataString = userData.toString();
+        URL obj = new URL(POST_URL);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("User-Agent", USER_AGENT);
+
+        // For POST only - START
+        con.setDoOutput(true);
+        try (OutputStream os = con.getOutputStream()) {
+            System.out.println(userDataString);
+            os.write(userDataString.getBytes());
+            os.flush();
+            // For POST only - END
+        }
+
+        int responseCode = con.getResponseCode();
+        System.out.println("POST Response Code :: " + responseCode);
+
+        if (responseCode == HttpURLConnection.HTTP_OK) {                
+                StringBuilder response;
+                try ( //success
+                    BufferedReader in = new BufferedReader(new java.io.InputStreamReader(
+                            con.getInputStream()))) {
+                    String inputLine;
+                    response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                }
+
+                // print result
+                System.out.println(response.toString());
+                 //Set up instance instead of using static load() method
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
+                Parent root = loader.load();
+
+                //Now we have access to getController() through the instance... don't forget the type cast
+                myControllerHandle = (FXMLController) loader.getController();
+                myControllerHandle.buttonReconnectSens.setText("Reset sensors");
+
+                //Button event
+                myControllerHandle.buttonReconnectSens.setOnAction((event) -> {
+                    // Button was clicked, do something...
+                    for (int i = 0; i < sensorsSubs.size(); i++) {
+                        //System.out.println("Kill thread of sensors: " + i);
+                        sensorsSubs.get(i).Stopp();
+                    }
+                    ListSensors.clear();
+                    myControllerHandle.reloadDataForTables();
+                    //System.out.println("Exit if kill threads of sensors!");
+                    for (int i = 0; i < sensorsSubs.size(); i++) {
+                        //System.out.println("Star thread of sensors: " + i);
+                        sensorsSubs.get(i).start();
+                    }
+                    //System.out.println("OK all thread of sensors Start!");
+
+                });
+
+                Scene scene = new Scene(root);
+                //Set Image icon to app
+                //Image icon = new Image("dist/image");
+                //stage.getIcons().add(icon);
+                scene.getStylesheets().add("/styles/Styles.css");
+
+                stage0.setScene(scene);
+                stage0.show();
+        } else {
+                System.out.println("POST request not worked");
+        }
+
     }
     
     
