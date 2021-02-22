@@ -45,6 +45,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -68,6 +69,7 @@ public class BGFApp extends Application {
     //private static final String SUMMARY_HOST_ATTRIBUTES = "http://localhost:3030/putAttributes/bycategory/";
 
     private static final String SUMMARY_HOST_ATTRIBUTES = "http://144.126.216.255:3008/spend_attributes_apis";
+    private static final String LOGOUT_HOST = "http://144.126.216.255:3006/logout";
 
     //private static final String ACCOUNTS_HOST2 = "http://localhost:3000/player/";
     private static final String ACCOUNTS_HOST = "https://bgames-configurationservice.herokuapp.com/player/";
@@ -701,6 +703,34 @@ public class BGFApp extends Application {
         }
         //System.out.println("He left the For to close Sensors!");
     }
+    public void logoutCall() throws IOException, Exception{
+        String proper_url = LOGOUT_HOST+"/"+String.valueOf(getIdPlayer());
+        System.out.println(proper_url);
+        URL obj = new URL(proper_url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        // optional default is GET
+        con.setRequestMethod("POST");
+        //add request header
+        con.setRequestProperty("User-Agent", "Mozilla/5.0");
+        int responseCode = con.getResponseCode();
+        System.out.println("\nSending 'GET' request to URL : " + proper_url);
+        System.out.println("Response Code : " + responseCode);
+        try (BufferedReader in = new BufferedReader(
+                new java.io.InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            //print in Strin
+        }
+        System.out.println(responseCode);
+        if (responseCode == HttpURLConnection.HTTP_OK) {  
+                 setIdPlayer(0);
+                 start(BGFApp.this.stage0);
+
+        }
+    }
 
     public void loginCall(JSONObject userData, String email) throws MalformedURLException, ProtocolException, IOException, JSONException {
         String userDataString = userData.toString();
@@ -775,6 +805,19 @@ public class BGFApp extends Application {
                         batchDataSpendQuestion(); 
 
                     }); 
+                     myControllerHandle.logout.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            try {
+                                logoutCall();
+                            } catch (IOException ex) {
+                                Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (Exception ex) {
+                                Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+                            }   
+                        }
+                    }); 
+                       
                        
                    
 

@@ -16,10 +16,13 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import static com.webclient.userinterface.BGFApp.ListSensors;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.scene.control.MenuItem;
 
 
 public class FXMLController implements Initializable {
     
+    @FXML
+    public MenuItem logout;
 
     @FXML
     private TextField textEmail;    
@@ -49,8 +52,13 @@ public class FXMLController implements Initializable {
     public void handleButtonReconnectSensAction(ActionEvent event) {
         //label.setText("Hello World!");
     }
+    @FXML
     public void handleButtonConsumeBatchAttributes(ActionEvent event) {
         //label.setText("Hello World!");
+    }
+    @FXML
+    public void handleMenuItemLogout(ActionEvent event) {
+
     }
     @FXML
     public void handleButtonMinAction(ActionEvent event) {
@@ -99,5 +107,6 @@ public class FXMLController implements Initializable {
         }
         sourcesTable.setItems(table_data2);
     }
+    
 
 }
