@@ -37,6 +37,7 @@ import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -57,7 +58,7 @@ import javax.swing.JOptionPane;
 public class BGFApp extends Application {
     // Init constants
     private static final String FOLDER = "dist/plugins";
-    public static final String WEBSOCKET_HOST = "http://localhost:8003";
+    public static final String WEBSOCKET_HOST = "http://localhost:8001";
     //private static final String ATTRIBUTES_HOST2 = "http://localhost:3030/getAttributes/";
     private static final String ATTRIBUTES_HOST = "https://bgames-attributedisplayconfig.herokuapp.com/getAttributes/";
 
@@ -66,7 +67,7 @@ public class BGFApp extends Application {
     
     //private static final String SUMMARY_HOST_ATTRIBUTES = "http://localhost:3030/putAttributes/bycategory/";
 
-    private static final String SUMMARY_HOST_ATTRIBUTES = "https://bgames-attributedisplayconfig.herokuapp.com/putAttributes/bycategory/";
+    private static final String SUMMARY_HOST_ATTRIBUTES = "http://144.126.216.255:3008/spend_attributes_apis";
 
     //private static final String ACCOUNTS_HOST2 = "http://localhost:3000/player/";
     private static final String ACCOUNTS_HOST = "https://bgames-configurationservice.herokuapp.com/player/";
@@ -94,39 +95,57 @@ public class BGFApp extends Application {
         if(n == 0){
             //System.out.println("Data Found: " + _connection.getData());
             //notifica(this._sensorNeed);
+            Boolean response = false;
              try {            
-           
-              Send_HTTP_Request2.reduce_attribute_player(attributes,SUMMARY_HOST_ATTRIBUTES+Integer.toString(idPlayer)+"/"+"Físico",Integer.toString(idPlayer), "Físico");
+                 /*
+                    var id_player = req.body.id_player
+                    var id_videogame = req.body.id_videogame
+                    // [2,20,4,0,0]
+                    var id_modifiable_mechanic = req.body.id_modifiable_mechanic
+                    // Ej: ['chess_blitz,records,win', 'elo','puzzle_challenge,record','puzzle_rush','chess_rapid,record,win']
+                    var data = req.body.data
+                 */
+              int id_videogame = 1; //Ultimate-Tetris-3D id
+              int id_modifiable_mechanic = 1; //Slow down blocks id in tetris
+              int data = 1; //Data to convert
+              response = Send_HTTP_Request2.reduce_attribute_player(SUMMARY_HOST_ATTRIBUTES,idPlayer, id_videogame,id_modifiable_mechanic,data);
+              JSONObject obj = new JSONObject();
+              JSONObject obj2 = new JSONObject();
+              //Se tienen suficientes atributos para gastar
+              if(response){
+                  JOptionPane.showMessageDialog(null,"Se gastaron atributos" );
+                  try {
+                    obj.put("room", "SensorCerebral");
+                    obj.put("name", "Mindwave");
+                    java.util.Date dt = new java.util.Date();
 
+                    java.text.SimpleDateFormat dataTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+                    String currentTime = dataTime.format(dt);
+
+
+                    obj2.put("id_player", idPlayer);
+                    obj2.put("nameat", "Resistencia");
+                    obj2.put("namecategory", "Físico");
+                    obj2.put("data", 50);
+                    obj2.put("data_type", "por.on");
+                    obj2.put("input_source", "ericblue.mindstream.client.ThinkGearSocketClient - Mindwave.Mobile: MW003");
+                    obj2.put("date_time", currentTime);
+                    obj.put("message",obj2);
+                    socket2.emit("message",obj);  
+                } catch (JSONException ex) {
+                    System.out.println(ex);
+                }
+
+                socket2.emit("AllSensors");
+              }
+              else{
+                  JOptionPane.showMessageDialog(null,"No se tienen suficientes atributos" );
+              }
             } catch (Exception e) {
                 //System.out.println("-- Failed to connect to information microservices --");
             }
-            JSONObject obj = new JSONObject();
-            JSONObject obj2 = new JSONObject();
-
-            try {
-                obj.put("room", "SensorCerebral");
-                obj.put("name", "Mindwave");
-                java.util.Date dt = new java.util.Date();
-
-                java.text.SimpleDateFormat dataTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-                String currentTime = dataTime.format(dt);
-
-
-                obj2.put("id_player", idPlayer);
-                obj2.put("nameat", "Resistencia");
-                obj2.put("namecategory", "Físico");
-                obj2.put("data", 50);
-                obj2.put("data_type", "por.on");
-                obj2.put("input_source", "ericblue.mindstream.client.ThinkGearSocketClient - Mindwave.Mobile: MW003");
-                obj2.put("date_time", currentTime);
-                obj.put("message",obj2);
-                socket2.emit("message",obj);  
-            } catch (JSONException ex) {
-            }
-
-            socket2.emit("AllSensors");
+           
             
         }
         
@@ -173,14 +192,7 @@ public class BGFApp extends Application {
     public static void main(String[] args) throws IOException, JSONException{
         
         //Only have one player in this app
-        //PlayerGetPassword();
-        String password = "pass001";
-        getIDofPlayer(nameAccount,password);
-        Players.add(idPlayer);
-        setIdPlayer(Players.get(0));
-        //Get attributes and summary of Player
-        System.out.println(idPlayer);
-        getAttributesAndSummary(idPlayer);
+     
         //Create plugin folder if dosent exist
         createPluginFolder(FOLDER);
         
@@ -208,10 +220,6 @@ public class BGFApp extends Application {
         closeAll();
     }
     
-  
-      
-    
-    
     /*
     
           USER DATA SECTION
@@ -219,38 +227,7 @@ public class BGFApp extends Application {
     
     */
         
-    
-    /*
-    * Input: Id of a player (range 0 to positive int)
-    * Output: Set PlayerSummaryAttribute array 
-    * Description: Gets all the attributes and the summary of them of an specific player
-    * to be rendered in the javaFX interface
-    */
-    private static void getAttributesAndSummary(int idPlayer){
-        //System.out.println("Connecting to virtual profile of player");
-        try {            
-            //System.out.println("Identificator of player is:" +idPlayer);
-            Send_HTTP_Request2.call_resum_attributes(attributes,SUMMARY_HOST+Integer.toString(idPlayer));
-            Send_HTTP_Request2.call_all_attributes(attributesAll,ATTRIBUTES_HOST+Integer.toString(idPlayer));
-
-        } catch (Exception e) {
-            //System.out.println("-- Failed to connect to information microservices --");
-       }
-    }
-    
-    /*
-    * Input: Name and password of a player
-    * Output: Id of the player (range 0 to positive int)
-    * Description: Passes both parameters to be validated by the respective authentication microservice and get the user's id
-    */
-    private static void getIDofPlayer(String Name, String Password){
-        System.out.println("Connecting to virtual profile of player");
-        try {
-            Send_HTTP_Request2.call_id_Player(idPlayer,ACCOUNTS_HOST,Name,Password);
-        } catch (Exception e) {
-            //System.out.println("-- Failed to connect to information microservices --");
-       }
-    }
+ 
    
     /*
     * Description: @return the idPlayer
@@ -265,12 +242,6 @@ public class BGFApp extends Application {
     public static void setIdPlayer(int aId) {
         idPlayer = aId;
     }
-    
-    
-    
-    
-    
-    
     
     /*
     
@@ -306,7 +277,7 @@ public class BGFApp extends Application {
             JSONObject resultJson;
             try {
                 resultJson = new JSONObject().put("email", email).put("key", key).put("provider", provider);                
-                loginCall(resultJson);
+                loginCall(resultJson,email);
             } catch (JSONException | IOException ex) {
                 Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -318,12 +289,11 @@ public class BGFApp extends Application {
             String provider = "facebook.com";
             JSONObject resultJson;
             try {
-                resultJson = new JSONObject().put("email", email).put("key", key).put("provider", provider);                
-                loginCall(resultJson);
+                resultJson = new JSONObject().put("email", email).put("key", key).put("provider", provider);
+                loginCall(resultJson,email);
             } catch (JSONException | IOException ex) {
                 Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
             }
-
         });
         LoginController.btnFirebase.setOnAction((ActionEvent event) -> {
             String email = LoginController.txtEmail.getText();
@@ -334,7 +304,7 @@ public class BGFApp extends Application {
             JSONObject resultJson;
             try {
                 resultJson = new JSONObject().put("email", email).put("pass", pass).put("key", key).put("provider", provider);
-                loginCall(resultJson);
+                loginCall(resultJson,email);
                 
             } catch (JSONException | IOException ex) {
                 Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
@@ -391,7 +361,7 @@ public class BGFApp extends Application {
                 //image = ImageIO.read(new File(System.getProperty("user.dir")+"\\dist\\icons\\BGTranns.png"));
 
             } catch (IOException ex) {
-                //System.out.println(ex);
+                System.out.println(ex);
             }
 
             stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -732,75 +702,97 @@ public class BGFApp extends Application {
         //System.out.println("He left the For to close Sensors!");
     }
 
-    public void loginCall(JSONObject userData) throws MalformedURLException, ProtocolException, IOException {
+    public void loginCall(JSONObject userData, String email) throws MalformedURLException, ProtocolException, IOException, JSONException {
         String userDataString = userData.toString();
         URL obj = new URL(POST_URL);
+        StringBuilder response = null;
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("User-Agent", USER_AGENT);
+        try{                 
 
-        // For POST only - START
-        con.setDoOutput(true);
-        try (OutputStream os = con.getOutputStream()) {
-            System.out.println(userDataString);
-            os.write(userDataString.getBytes());
-            os.flush();
-            // For POST only - END
-        }
+            // For POST only - START
+            con.setDoOutput(true);
+            try (OutputStream os = con.getOutputStream()) {
+                System.out.println(userDataString);
+                os.write(userDataString.getBytes());
+                os.flush();
+                // For POST only - END
+            }
 
-        int responseCode = con.getResponseCode();
-        System.out.println("POST Response Code :: " + responseCode);
+            int responseCode = con.getResponseCode();
+            System.out.println("POST Response Code :: " + responseCode);
 
-        if (responseCode == HttpURLConnection.HTTP_OK) {                
-                StringBuilder response;
-                try ( //success
-                    BufferedReader in = new BufferedReader(new java.io.InputStreamReader(
-                            con.getInputStream()))) {
-                    String inputLine;
-                    response = new StringBuilder();
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
+            try ( //success
+                BufferedReader in = new BufferedReader(new java.io.InputStreamReader(
+                        con.getInputStream()))) {
+                String inputLine;
+                response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
                 }
+            }
+            if (responseCode == HttpURLConnection.HTTP_OK) {                
 
-                // print result
-                System.out.println(response.toString());
-                 //Set up instance instead of using static load() method
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
-                Parent root = loader.load();
 
-                //Now we have access to getController() through the instance... don't forget the type cast
-                myControllerHandle = (FXMLController) loader.getController();
-                myControllerHandle.buttonReconnectSens.setText("Reset sensors");
+                    // print result
+                    System.out.println(response.toString());
+                    String jsonString = response.toString();
+                    JSONObject properJSON = new JSONObject(jsonString);
+                    int id_player = (int) properJSON.get("id_player");
+                    
+                    Players.add(id_player);
+                    setIdPlayer(Players.get(0));
+                    
+                    System.out.println(id_player);
+                    //Set up instance instead of using static load() method
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
+                    Parent root = loader.load();
 
-                //Button event
-                myControllerHandle.buttonReconnectSens.setOnAction((event) -> {
-                    // Button was clicked, do something...
-                    for (int i = 0; i < sensorsSubs.size(); i++) {
-                        //System.out.println("Kill thread of sensors: " + i);
-                        sensorsSubs.get(i).Stopp();
-                    }
-                    ListSensors.clear();
-                    myControllerHandle.reloadDataForTables();
-                    //System.out.println("Exit if kill threads of sensors!");
-                    for (int i = 0; i < sensorsSubs.size(); i++) {
-                        //System.out.println("Star thread of sensors: " + i);
-                        sensorsSubs.get(i).start();
-                    }
-                    //System.out.println("OK all thread of sensors Start!");
+                    //Now we have access to getController() through the instance... don't forget the type cast
+                    myControllerHandle = (FXMLController) loader.getController();
+                    myControllerHandle.initData(email);
+                    myControllerHandle.buttonReconnectSens.setText("Reset sensors");
 
-                });
+                    //Button event
+                    myControllerHandle.buttonReconnectSens.setOnAction((event) -> {
+                        // Button was clicked, do something...
+                        for (int i = 0; i < sensorsSubs.size(); i++) {
+                            //System.out.println("Kill thread of sensors: " + i);
+                            sensorsSubs.get(i).Stopp();
+                        }
+                        ListSensors.clear();
+                        myControllerHandle.reloadDataForTables();
+                        //System.out.println("Exit if kill threads of sensors!");
+                        for (int i = 0; i < sensorsSubs.size(); i++) {
+                            //System.out.println("Star thread of sensors: " + i);
+                            sensorsSubs.get(i).start();
+                        }
+                        //System.out.println("OK all thread of sensors Start!");
 
-                Scene scene = new Scene(root);
-                //Set Image icon to app
-                //Image icon = new Image("dist/image");
-                //stage.getIcons().add(icon);
-                scene.getStylesheets().add("/styles/Styles.css");
+                    });
+                    myControllerHandle.buttonConsumeAtt.setOnAction((event) -> { 
+                        batchDataSpendQuestion(); 
 
-                stage0.setScene(scene);
-                stage0.show();
-        } else {
-                System.out.println("POST request not worked");
+                    }); 
+                       
+                   
+
+                    Scene scene = new Scene(root);
+                    //Set Image icon to app
+                    //Image icon = new Image("dist/image");
+                    //stage.getIcons().add(icon);
+                    scene.getStylesheets().add("/styles/Styles.css");
+
+                    stage0.setScene(scene);
+                    stage0.show();
+            }
+        }catch(FileNotFoundException ex){
+            System.out.println("pase por aqui");
+            System.out.println(ex);
+            JOptionPane.showMessageDialog(null,"Datos incorrectos, revise e intente nuevamente ingresar sus datos" );
+            System.out.println("POST request not worked");
+            System.out.println(ex);
         }
 
     }

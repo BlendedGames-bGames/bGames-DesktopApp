@@ -5,16 +5,28 @@
  */
 package bgapp.utiilities;
 
+import static com.webclient.userinterface.BGFApp.ListSensors;
+import static com.webclient.userinterface.BGFApp.Players;
+import static com.webclient.userinterface.BGFApp.myControllerHandle;
+import static com.webclient.userinterface.BGFApp.sensorsSubs;
+import static com.webclient.userinterface.BGFApp.setIdPlayer;
+import com.webclient.userinterface.FXMLController;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javax.swing.JOptionPane;
 import org.json.JSONObject;
         
 /**
@@ -22,6 +34,8 @@ import org.json.JSONObject;
  * @author Bad-K
  */
 public class Send_HTTP_Request2 {
+        private static final String USER_AGENT = "Mozilla/5.0";
+
 
     /*
     * Input: Void array of a player's summary of attributes
@@ -184,68 +198,79 @@ public class Send_HTTP_Request2 {
     * Output: Full array of data
     * Description: HTTPUrlConnection for the HTTP request, reformat the output of the request and adding it to the array
     */    
-    public static void reduce_attribute_player(ArrayList<PlayerSummaryAttribute> attributes, String urlEnter, String id_player, String attName ) throws Exception {
+    /*
+           
+        var id_player = req.body.id_player
+        var id_videogame = req.body.id_videogame
+        // [2,20,4,0,0]
+        var id_modifiable_mechanic = req.body.id_modifiable_mechanic
+        // Ej: ['chess_blitz,records,win', 'elo','puzzle_challenge,record','puzzle_rush','chess_rapid,record,win']
+        var data = req.body.data
+
+    */
+    public static Boolean reduce_attribute_player(String urlEnter, int id_player, int id_videogame, int id_modifiable_mechanic, int data) throws Exception {
         System.out.println(urlEnter);
-        int dataToModify = 0;
-        int idAttributeToModify = 0;
-        for(PlayerSummaryAttribute att : attributes){
-            if(att.getName().equals(attName)){
-                dataToModify = att.getData();
-                idAttributeToModify = att.getId();
-            }
-        }
-        System.out.println("Linea 0: "+attributes.get(0).getName());
-        System.out.println("Linea 1: "+attributes.get(1).getName());
-        System.out.println("Linea 2: "+attributes.get(2).getName());
-        
-        System.out.println(idAttributeToModify);
-        //Aqui se resta el atributo procesado en algun numero o porcentaje (ej 5)
-        //Esto implica que se 'consumio'
-        //luego de esto se va al juego para que sea utilizado
-        String dataToModifyStr = Integer.toString(dataToModify-1);                                    
-        attributes.get(idAttributeToModify-1).setData(dataToModify-1);
         System.out.println("hola como");
 
-        String resultJson = new JSONObject().put("id_player", id_player).put("namecategory", attName).put("data", dataToModifyStr).toString();
-        System.out.println(resultJson);
+        String resultJson = new JSONObject().
+                            put("id_player", id_player).
+                            put("id_videogame", id_videogame).
+                            put("id_modifiable_mechanic", id_modifiable_mechanic).
+                            put("data", data)
+                            .toString();
         
-        String url = urlEnter;
-        URL obj = new URL(url);
-        HttpURLConnection con = null;
-        DataOutputStream dataOutputStream = null;
-        try {
-            con = (HttpURLConnection) obj.openConnection();
-            // PUT
-            con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        System.out.println(resultJson);
+        URL obj = new URL(urlEnter);
+        StringBuilder response = null;
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("User-Agent", USER_AGENT);
+        try{                 
 
-            con.setDoInput(true);
+            // For POST only - START
             con.setDoOutput(true);
-            con.setRequestMethod("PUT");         
-            dataOutputStream = new DataOutputStream(con.getOutputStream());
-            dataOutputStream.writeUTF(resultJson);
-            dataOutputStream.close();
-            con.getInputStream();
-        }
-        catch (IOException exception) {
-            exception.printStackTrace();
-        }finally {
-            if (dataOutputStream != null) {
-                try {
-                    dataOutputStream.flush();
-                    dataOutputStream.close();
-                } catch (IOException exception) {
-                    exception.printStackTrace();
+            try (OutputStream os = con.getOutputStream()) {
+                System.out.println(resultJson);
+                os.write(resultJson.getBytes());
+                os.flush();
+                // For POST only - END
+            }
+
+            int responseCode = con.getResponseCode();
+            System.out.println("POST Response Code :: " + responseCode);
+
+            try ( //success
+                BufferedReader in = new BufferedReader(new java.io.InputStreamReader(
+                        con.getInputStream()))) {
+                String inputLine;
+                response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
                 }
             }
-            if (con != null) {
-                con.disconnect();
+            if (responseCode == HttpURLConnection.HTTP_OK) {                
+
+
+                    // print result
+                    System.out.println(response.toString());
+                    String jsonString = response.toString();
+                    JSONObject properJSON = new JSONObject(jsonString);
+                    Boolean message = (Boolean) properJSON.get("message");
+                    //Se tienen suficientes atributos para gastar
+                    return message;
+                   
+
             }
-       
-        
-         
-         
-      }
+            else{
+                return false;
+            }
+        }catch(FileNotFoundException ex){
+            System.out.println(ex);
+            System.out.println("Se encontro un error al hacer la llamada para gastar atributos");
+            return false;
+        }
     }
+    
 
     /*
     * Input: Authentication Microservice's host url and player's name and password to be log in

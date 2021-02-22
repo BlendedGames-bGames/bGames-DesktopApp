@@ -1,8 +1,5 @@
 package com.webclient.userinterface;
 
-import static com.webclient.userinterface.BGFApp.attributes;
-import static com.webclient.userinterface.BGFApp.attributesAll;
-import bgapp.utiilities.AttributePlayer;
 import bgapp.utiilities.SensorNeed;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -13,17 +10,19 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import static com.webclient.userinterface.BGFApp.ListSensors;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 
 public class FXMLController implements Initializable {
     
+
+    @FXML
+    private TextField textEmail;    
     @FXML
     private Label label;
     @FXML
@@ -32,20 +31,6 @@ public class FXMLController implements Initializable {
     public Button buttonReconnectSens;
     @FXML
     public Button buttonConsumeAtt;
-    @FXML
-    private BarChart attributesBar;
-    @FXML
-    private TableView<AttributePlayer> attributesTable;
-    @FXML
-    private TableColumn<AttributePlayer,Integer> col_BPoints;
-    @FXML
-    private TableColumn<AttributePlayer,String> col_subAt;
-    @FXML
-    private TableColumn<AttributePlayer,String> col_at;
-    @FXML
-    private TableColumn<AttributePlayer,String> col_fecha;
-    @FXML
-    private TableColumn<AttributePlayer,String> col_fuente;
     @FXML
     private TableView<SensorNeed> sourcesTable;
     @FXML
@@ -59,7 +44,6 @@ public class FXMLController implements Initializable {
     @FXML
     private TableColumn<SensorNeed, Integer> col_Acciones;
     
-    private BGFApp mainApp;
                 
     @FXML
     public void handleButtonReconnectSensAction(ActionEvent event) {
@@ -80,34 +64,12 @@ public class FXMLController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-        loadDataForAttributeTable();
         loadDataForAttributeTableSecond();
+    }
+    void initData(String email) {
+      textEmail.setText(email);
     }    
     
-    
-   
-    
-    //Inicializa los datos del usuario en la Tabla de atributos
-    private void loadDataForAttributeTable(){
-        
-        col_BPoints.setCellValueFactory(new PropertyValueFactory<>("data"));
-        col_subAt.setCellValueFactory(new PropertyValueFactory<>("name"));
-        col_at.setCellValueFactory(new PropertyValueFactory<>("name_category"));
-        col_fecha.setCellValueFactory(new PropertyValueFactory<>("date_time"));
-        col_fuente.setCellValueFactory(new PropertyValueFactory<>("input_source"));
-        
-        
-        
-        //Inciializar Observable
-        ObservableList<AttributePlayer> table_data = FXCollections.observableArrayList();
-        
-        for (AttributePlayer attributesAll1 : attributesAll) {
-            table_data.add(attributesAll1);
-        }
-        //Agregar datos a la Tabla !
-        attributesTable.setItems(table_data);
-       
-    }
     
     private void loadDataForAttributeTableSecond(){
         

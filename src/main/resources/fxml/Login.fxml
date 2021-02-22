@@ -44,12 +44,12 @@
             <Font name="Times New Roman" size="22.0" />
          </font>
       </Label>
-      <PasswordField fx:id="txtPass" layoutX="168.0" layoutY="251.0" prefHeight="33.0" prefWidth="274.0" />
+      <PasswordField fx:id="txtPass" layoutX="168.0" layoutY="251.0" prefHeight="33.0" prefWidth="274.0" promptText="********" />
       <Label fx:id="txtLabelKey" layoutX="173.0" layoutY="307.0" text="Llave">
          <font>
             <Font name="Times New Roman" size="22.0" />
          </font>
       </Label>
-      <TextField fx:id="txtKey" layoutX="168.0" layoutY="345.0" prefHeight="33.0" prefWidth="274.0" promptText="example@mail.com" />
+      <TextField fx:id="txtKey" layoutX="168.0" layoutY="345.0" prefHeight="33.0" prefWidth="274.0" promptText="h32hg32vgvc1gfc234" />
    </children>
 </AnchorPane>
