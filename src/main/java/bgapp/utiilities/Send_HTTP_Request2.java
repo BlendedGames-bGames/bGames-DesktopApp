@@ -208,7 +208,7 @@ public class Send_HTTP_Request2 {
         var data = req.body.data
 
     */
-    public static Boolean reduce_attribute_player(String urlEnter, int id_player, int id_videogame, int id_modifiable_mechanic, int data) throws Exception {
+    public static String reduce_attribute_player(String urlEnter, int id_player, int id_videogame, int id_modifiable_mechanic, int data) throws Exception {
         System.out.println(urlEnter);
         System.out.println("hola como");
 
@@ -256,18 +256,23 @@ public class Send_HTTP_Request2 {
                     String jsonString = response.toString();
                     JSONObject properJSON = new JSONObject(jsonString);
                     Boolean message = (Boolean) properJSON.get("message");
+                    int consumeData = (int) properJSON.get("data");
+                    JSONObject reply = new JSONObject();
+                    reply.put("message", message);
+                    reply.put("data", consumeData);
                     //Se tienen suficientes atributos para gastar
-                    return message;
+                    String replyString = reply.toString();
+                    return replyString;
                    
 
             }
             else{
-                return false;
+                return "";
             }
         }catch(FileNotFoundException ex){
             System.out.println(ex);
             System.out.println("Se encontro un error al hacer la llamada para gastar atributos");
-            return false;
+            return "";
         }
     }
     

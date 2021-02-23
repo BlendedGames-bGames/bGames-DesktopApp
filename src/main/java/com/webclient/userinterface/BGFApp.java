@@ -79,7 +79,7 @@ public class BGFApp extends Application {
     public static String nameAccount = "Player1";
     public static int idPlayer = 1; // Or idPlayer of player init the app
     public static ArrayList<Integer> Players = new ArrayList();
-
+    /*
     private static void batchDataSpendQuestion() {
         Object[] options = {"Yes, please",
                     "No way!"};
@@ -99,14 +99,7 @@ public class BGFApp extends Application {
             //notifica(this._sensorNeed);
             Boolean response = false;
              try {            
-                 /*
-                    var id_player = req.body.id_player
-                    var id_videogame = req.body.id_videogame
-                    // [2,20,4,0,0]
-                    var id_modifiable_mechanic = req.body.id_modifiable_mechanic
-                    // Ej: ['chess_blitz,records,win', 'elo','puzzle_challenge,record','puzzle_rush','chess_rapid,record,win']
-                    var data = req.body.data
-                 */
+                
               int id_videogame = 1; //Ultimate-Tetris-3D id
               int id_modifiable_mechanic = 1; //Slow down blocks id in tetris
               int data = 1; //Data to convert
@@ -153,8 +146,42 @@ public class BGFApp extends Application {
         
         
     }
+    */
 
-   
+    private static void powerUpAction(JSONObject JSONInfo) {
+        
+        System.out.println(JSONInfo);
+        try {            
+            
+            int id_videogame = (int) JSONInfo.get("id_videogame"); //Ultimate-Tetris-3D id
+            int id_modifiable_mechanic =  (int) JSONInfo.get("id_modifiable_mechanic"); //Slow down blocks id in tetris
+            int data = (int) JSONInfo.get("data"); //Data to convert
+            String response = Send_HTTP_Request2.reduce_attribute_player(SUMMARY_HOST_ATTRIBUTES,idPlayer, id_videogame,id_modifiable_mechanic,data);
+            JSONObject responseJson = new JSONObject(response);
+            //Se tienen suficientes atributos para gastar
+            if((Boolean) responseJson.get("message")){
+                JOptionPane.showMessageDialog(null,"Se gastaron atributos" );
+                //room,message,name
+                JSONObject sendJSON = new JSONObject();
+                sendJSON.put("room", "SensorCerebral");
+                sendJSON.put("name", "Juego_Pong");
+                sendJSON.put("message", (int) responseJson.get("data"));
+
+                System.out.println(sendJSON);
+                socket.emit("message",sendJSON);
+                socket.emit("AllSensors");
+            }
+            else{
+                JOptionPane.showMessageDialog(null,"No se tienen suficientes atributos" );
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            
+            //System.out.println("-- Failed to connect to information microservices --");
+        }
+        
+    }
+
     
     //Minimize vars
     //DisplayTrayIcon DTI = new DisplayTrayIcon();
@@ -181,7 +208,6 @@ public class BGFApp extends Application {
     //Socket for WebSocket communication
     private static WebSocketServerInit websock;
     public static Socket socket;
-    public static Socket socket2;
 
     //FMX Controller
     public static FXMLController myControllerHandle;
@@ -191,7 +217,7 @@ public class BGFApp extends Application {
     
 
    
-    public static void main(String[] args) throws IOException, JSONException{
+    public static void main(String[] args) throws IOException, JSONException, URISyntaxException{
         
         //Only have one player in this app
      
@@ -203,12 +229,12 @@ public class BGFApp extends Application {
         websock.run();
         System.out.println("Ya existe el websocketserver en el 8001");
         
-        socketCommunicationPodometer();
+        socketComunicationInit(WEBSOCKET_HOST);
         JSONObject obj = new JSONObject();
 
         obj.put("room", "SensorCerebral");
         obj.put("name", "Mindwave");
-        socket2.emit("join_sensor", obj);
+        socket.emit("join_sensor", obj);
 
         //Search and start plugins
         searchPlugins(FOLDER);
@@ -326,7 +352,6 @@ public class BGFApp extends Application {
         String currentDir = helper.substring(0, helper.length() - currentDirFile.getCanonicalPath().length());//this line may need a try-catch block
         
 
-        socketComunicationInit(WEBSOCKET_HOST);
        
     }
 
@@ -495,6 +520,7 @@ public class BGFApp extends Application {
         File libs = new File(folder);
         File[] jars;
         jars = libs.listFiles(new FileFilter() {
+            @Override
             public boolean accept(File pathname) {
                 return pathname.getName().toLowerCase().endsWith(".jar");
             }       
@@ -527,95 +553,12 @@ public class BGFApp extends Application {
         }
     }
     
-    public static void socketCommunicationPodometer(){
-        try{
-              socket2 = IO.socket("http://localhost:8001");
-
-        }
-        catch (URISyntaxException ex) {
-            
-        }
-        socket2.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-        @Override
-        public void call(Object... os) {
-            System.out.println("Sensor connected to the websocket"); //To change body of generated methods, choose Tools | Templates.
-        }
-
-      }).on("join_sensor", new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            socket2.emit("SensorCerebral", "Mindwave Neurosky");
-        }
-
-      }).on("AllSensors", new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            try {
-                //System.out.println("Args[0] enter: "+args[0]);
-                JSONObject obj = (JSONObject)args[0];
-                System.out.println("Sensors: "+obj.getString("sensoresActivos"));
-            } catch (JSONException ex) {
-            }
-        }
-
-      }).on("message", new Emitter.Listener() {
-
-        @Override
-        public void call(Object... args) {
-            try {
-                JSONObject obj = (JSONObject)args[0];
-                System.out.println("Objet nome: "+obj.getString("name"));
-                System.out.println("Objet message: "+obj.getString("message"));
-            } catch (JSONException ex) {
-                System.out.println("Failed to get object or name");
-            }
-        }
-
-      }).on("Imessage", new Emitter.Listener() {
-
-        @Override
-        public void call(Object... args) {
-            try {
-                JSONObject obj = (JSONObject)args[0];
-                System.out.println("Objet nome: "+obj.getString("name"));
-                System.out.println("Objet message: "+obj.getString("message"));
-            } catch (JSONException ex) {
-                System.out.println("Failed to get object or name");
-            }
-        }
-
-      }).on("Smessage", new Emitter.Listener() {
-
-        @Override
-        public void call(Object... args) {
-            try {
-                JSONObject obj = (JSONObject)args[0];
-                System.out.println("Objet nome: "+obj.getString("name"));
-                System.out.println("Objet message: "+obj.getString("message"));
-            } catch (JSONException ex) {
-                System.out.println("Failed to get object or name");
-            }
-        }
-
-      }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-
-        @Override
-        public void call(Object... args) {}
-
-      });           
-      System.out.println("me conecte");
-
-      socket2.connect();
-
-    }
-    
-    
     /*
     * Input: Web socket port host string
     * Output: Started websocket channel
     * Description: Boilerplate code for initiating a web socket server using Socket IO library
      */
-    public void socketComunicationInit(String WebSocketDir0) throws URISyntaxException{
+    public static void socketComunicationInit(String WebSocketDir0) throws URISyntaxException{
         socket = IO.socket(WebSocketDir0);
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -623,58 +566,73 @@ public class BGFApp extends Application {
                 System.out.println("Connection OK!"); //To change body of generated methods, choose Tools | Templates.
             }
 
-          }).on("join_sensor", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                socket.emit("RoomOfBFApp", "Blended Games Framework Desktop Aplication!");
-            }
+        }).on("join_sensor", new Emitter.Listener() {
+          @Override
+          public void call(Object... args) {
+              socket.emit("RoomOfBFApp", "Blended Games Framework Desktop Aplication!");
+          }
 
-          }).on("AllSensors", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                try {
-                    System.out.println("Args[0] enter: "+args[0]);
-                    JSONObject obj = (JSONObject)args[0];
-                    System.out.println("Sensors: "+obj.getString("sensoresActivos"));
-                } catch (JSONException ex) {
-                    Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+        }).on("AllSensors", new Emitter.Listener() {
+          @Override
+          public void call(Object... args) {
+              try {
+                  System.out.println("Args[0] enter: "+args[0]);
+                  JSONObject obj = (JSONObject)args[0];
+                  System.out.println("Sensors: "+obj.getString("sensoresActivos"));
+              } catch (JSONException ex) {
+                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+              }
+          }
 
-          }).on("message", new Emitter.Listener() {
+        }).on("message", new Emitter.Listener() {
 
-            @Override
-            public void call(Object... args) {
-                try {
-                    JSONObject obj = (JSONObject)args[0];
-                    System.out.println("Objet nome: "+obj.getString("name"));
-                    System.out.println("Objet message: "+obj.getString("message"));
-                } catch (JSONException ex) {
-                    System.out.println("Failed to get object or name");
-                    Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+          @Override
+          public void call(Object... args) {
+              try {
+                  JSONObject obj = (JSONObject)args[0];
+                  System.out.println("Objet nome: "+obj.getString("name"));
+                  System.out.println("Objet message: "+obj.getString("message"));
+              } catch (JSONException ex) {
+                  System.out.println("Failed to get object or name");
+                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+              }
+          }
 
-          }).on("Smessage", new Emitter.Listener() {
+        }).on("Smessage", new Emitter.Listener() {
 
-            @Override
-            public void call(Object... args) {
-                try {
-                    JSONObject obj = (JSONObject)args[0];
-                    System.out.println("Objet nome: "+obj.getString("name"));
-                    System.out.println("Objet message: "+obj.getString("message"));
-                } catch (JSONException ex) {
-                    System.out.println("Failed to get object or name");
-                    Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+          @Override
+          public void call(Object... args) {
+              try {
+                  JSONObject obj = (JSONObject)args[0];
+                  System.out.println("Objet nome: "+obj.getString("name"));
+                  System.out.println("Objet message: "+obj.getString("message"));
+                  powerUpAction((JSONObject) obj.get("message"));
+              } catch (JSONException ex) {
+                  System.out.println("Failed to get object or name");
+                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+              }
+          }
 
-          }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+        }).on("Imessage", new Emitter.Listener() {
+
+          @Override
+          public void call(Object... args) {
+              try {
+                  JSONObject obj = (JSONObject)args[0];
+                  System.out.println("Objet nome: "+obj.getString("name"));
+                  System.out.println("Objet message: "+obj.getString("message"));
+                  socket.emit("AllSensors");
+              } catch (JSONException ex) {
+                  System.out.println("Failed to get object or name");
+              }
+          }
+
+        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
 
             @Override
             public void call(Object... args) {}
 
-          });
+        });
         
         
          socket.connect();
@@ -802,25 +760,18 @@ public class BGFApp extends Application {
 
                     });
                     myControllerHandle.buttonConsumeAtt.setOnAction((event) -> { 
-                        batchDataSpendQuestion(); 
+                        //batchDataSpendQuestion(); 
 
                     }); 
-                     myControllerHandle.logout.setOnAction(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent event) {
-                            try {
-                                logoutCall();
-                            } catch (IOException ex) {
-                                Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
-                            } catch (Exception ex) {
-                                Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
-                            }   
-                        }
+                     myControllerHandle.logout.setOnAction((ActionEvent event) -> {
+                         try {
+                             logoutCall();
+                         } catch (IOException ex) {
+                             Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+                         } catch (Exception ex) {
+                             Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+                         }
                     }); 
-                       
-                       
-                   
-
                     Scene scene = new Scene(root);
                     //Set Image icon to app
                     //Image icon = new Image("dist/image");
