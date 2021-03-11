@@ -164,7 +164,8 @@ public class BGFApp extends Application {
                 JSONObject sendJSON = new JSONObject();
                 sendJSON.put("room", roomName);
                 sendJSON.put("name", roomName);
-                sendJSON.put("message", (int) responseJson.get("data"));
+                int[] message = { (int) responseJson.get("data"), (int) responseJson.get("modified_mechanic")};
+                sendJSON.put("message",message);
 
                 System.out.println(sendJSON);
                 socket.emit("message",sendJSON);

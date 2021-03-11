@@ -259,6 +259,7 @@ public class Send_HTTP_Request2 {
                     int consumeData = (int) properJSON.get("data");
                     JSONObject reply = new JSONObject();
                     reply.put("message", message);
+                    reply.put("modified_mechanic", id_modifiable_mechanic);
                     reply.put("data", consumeData);
                     //Se tienen suficientes atributos para gastar
                     String replyString = reply.toString();
