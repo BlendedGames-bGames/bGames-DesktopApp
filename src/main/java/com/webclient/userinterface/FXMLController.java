@@ -33,8 +33,6 @@ public class FXMLController implements Initializable {
     @FXML
     public Button buttonReconnectSens;
     @FXML
-    public Button buttonConsumeAtt;
-    @FXML
     private TableView<SensorNeed> sourcesTable;
     @FXML
     private TableColumn<SensorNeed, String> col_estado;

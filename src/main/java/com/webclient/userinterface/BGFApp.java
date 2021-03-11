@@ -148,7 +148,7 @@ public class BGFApp extends Application {
     }
     */
 
-    private static void powerUpAction(JSONObject JSONInfo) {
+    private static void powerUpAction(JSONObject JSONInfo, String roomName) {
         
         System.out.println(JSONInfo);
         try {            
@@ -160,11 +160,10 @@ public class BGFApp extends Application {
             JSONObject responseJson = new JSONObject(response);
             //Se tienen suficientes atributos para gastar
             if((Boolean) responseJson.get("message")){
-                JOptionPane.showMessageDialog(null,"Se gastaron atributos" );
                 //room,message,name
                 JSONObject sendJSON = new JSONObject();
-                sendJSON.put("room", "SensorCerebral");
-                sendJSON.put("name", "Juego_Pong");
+                sendJSON.put("room", roomName);
+                sendJSON.put("name", roomName);
                 sendJSON.put("message", (int) responseJson.get("data"));
 
                 System.out.println(sendJSON);
@@ -231,11 +230,10 @@ public class BGFApp extends Application {
         
         socketComunicationInit(WEBSOCKET_HOST);
         JSONObject obj = new JSONObject();
-
-        obj.put("room", "SensorCerebral");
-        obj.put("name", "Mindwave");
+        obj.put("room", "RoomOfBFApp");
+        obj.put("name", "Blended Games Framework Desktop Aplication");
         socket.emit("join_sensor", obj);
-
+        
         //Search and start plugins
         searchPlugins(FOLDER);
         //Run thread of directory of plugins watcher
@@ -572,6 +570,24 @@ public class BGFApp extends Application {
               socket.emit("RoomOfBFApp", "Blended Games Framework Desktop Aplication!");
           }
 
+        }).on("join_sensor_videogame", new Emitter.Listener() {
+          @Override
+          public void call(Object... args) {
+              try {
+                  JSONObject obj = (JSONObject)args[0];
+                  System.out.println("Objet nome: "+obj.getString("name"));
+                  System.out.println("Objet message: "+obj.getString("room"));
+                  JSONObject message = new JSONObject();
+        
+                    message.put("room",obj.getString("name"));
+                    message.put("name", obj.getString("room"));
+                  socket.emit("join_sensor_videogame_confirmation",message);
+                  
+              } catch (JSONException ex) {
+                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+              }
+          }
+
         }).on("AllSensors", new Emitter.Listener() {
           @Override
           public void call(Object... args) {
@@ -606,7 +622,7 @@ public class BGFApp extends Application {
                   JSONObject obj = (JSONObject)args[0];
                   System.out.println("Objet nome: "+obj.getString("name"));
                   System.out.println("Objet message: "+obj.getString("message"));
-                  powerUpAction((JSONObject) obj.get("message"));
+                  powerUpAction((JSONObject) obj.get("message"),obj.getString("name"));
               } catch (JSONException ex) {
                   System.out.println("Failed to get object or name");
                   Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
@@ -759,10 +775,6 @@ public class BGFApp extends Application {
                         //System.out.println("OK all thread of sensors Start!");
 
                     });
-                    myControllerHandle.buttonConsumeAtt.setOnAction((event) -> { 
-                        //batchDataSpendQuestion(); 
-
-                    }); 
                      myControllerHandle.logout.setOnAction((ActionEvent event) -> {
                          try {
                              logoutCall();

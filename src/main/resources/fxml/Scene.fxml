@@ -79,7 +79,6 @@
             </TabPane>
             <HBox alignment="TOP_RIGHT" prefHeight="25.0" prefWidth="1016.0">
                <children>
-                  <Button fx:id="buttonConsumeAtt" mnemonicParsing="false" onAction="#handleButtonConsumeBatchAttributes" text="Consumir atributos" />
                   <Button fx:id="buttonReconnectSens" mnemonicParsing="false" onAction="#handleButtonReconnectSensAction" prefHeight="25.0" prefWidth="144.0" text="Reconectar Sensores" />
                     <Button fx:id="buttonMin" onAction="#handleButtonMinAction" prefHeight="25.0" prefWidth="106.0" text="Minimizar" />
                </children>
