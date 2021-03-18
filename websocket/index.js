@@ -50,7 +50,32 @@ io.on('connection', function(socket) {
 		//io.sockets.in(room).emit("message",{message:"Conectado",name});
 		socket.to(desktopRoom).emit("join_sensor_videogame",{room,name});
 	});
-
+	socket.on("join_sensor_offline", ({room,name})=>{
+		socket.join(room);
+		console.log(sensoresActivos)
+		if(!(room in sensoresActivos)){
+			console.log("NameOfRoom? "+ room + " Space: " + name )
+			sensoresActivos[room] = room;
+		} else{
+			sensoresActivos[room][name] = name;
+		}
+		
+		console.log("Ok?")
+		//io.sockets.in(room).emit("message",{message:"Conectado",name});
+		socket.emit("JSensorOffline",{room,name});
+	});
+	socket.on("join_sensor_offline_confirmation", ({room,name,videogame})=>{
+		socket.join(room);
+		console.log(sensoresActivos)
+		if(!(room in sensoresActivos)){
+			console.log("NameOfRoom? "+ room + " Space: " + name )
+			sensoresActivos[room] = room;
+		} else{
+			sensoresActivos[room][name] = name;
+		}
+		
+		console.log("Se unio el videojuego "+ videogame + "al room del sensor "+name)
+	});
 	socket.on("join_sensor_videogame_confirmation", ({room,name})=>{
 		socket.join(room);
 		console.log(sensoresActivos)

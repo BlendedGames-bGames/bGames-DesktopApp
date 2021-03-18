@@ -31,11 +31,13 @@ import mod.sensors.DirectoryWatcher;
 
 
 import java.awt.AWTException;
+import java.awt.KeyboardFocusManager;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -234,13 +236,7 @@ public class BGFApp extends Application {
         obj.put("room", "RoomOfBFApp");
         obj.put("name", "Blended Games Framework Desktop Aplication");
         socket.emit("join_sensor", obj);
-        
-        //Search and start plugins
-        searchPlugins(FOLDER);
-        //Run thread of directory of plugins watcher
-        Runnable process = new DirectoryWatcher();
-        watcherProcess = new Thread(process);
-        watcherProcess.start();
+      
         
         launch(args);
         
@@ -345,7 +341,6 @@ public class BGFApp extends Application {
 
         stage0.setScene(scene);
         stage0.show();
-
         File currentDirFile = new File(".");
         String helper = currentDirFile.getAbsolutePath();
         String currentDir = helper.substring(0, helper.length() - currentDirFile.getCanonicalPath().length());//this line may need a try-catch block
@@ -568,7 +563,24 @@ public class BGFApp extends Application {
         }).on("join_sensor", new Emitter.Listener() {
           @Override
           public void call(Object... args) {
-              socket.emit("RoomOfBFApp", "Blended Games Framework Desktop Aplication!");
+              //socket.emit("RoomOfBFApp", "Blended Games Framework Desktop Aplication!");
+          }
+
+        }).on("join_sensor_offline", new Emitter.Listener() {
+          @Override
+          public void call(Object... args) {
+              try {
+                  JSONObject obj = (JSONObject)args[0];
+                  System.out.println("Objet nome: "+obj.getString("name"));
+                  System.out.println("Objet message: "+obj.getString("room"));
+                  JSONObject message = new JSONObject();        
+                  message.put("room",obj.getString("name"));
+                  message.put("name", obj.getString("room"));
+                  socket.emit("join_sensor_offline",message);
+                  
+              } catch (JSONException ex) {
+                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+              }
           }
 
         }).on("join_sensor_videogame", new Emitter.Listener() {
@@ -583,6 +595,20 @@ public class BGFApp extends Application {
                     message.put("room",obj.getString("name"));
                     message.put("name", obj.getString("room"));
                   socket.emit("join_sensor_videogame_confirmation",message);
+                  
+              } catch (JSONException ex) {
+                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
+              }
+          }
+
+        }).on("JSensorOffline", new Emitter.Listener() {
+          @Override
+          public void call(Object... args) {
+              try {
+             
+                  JSONObject obj = (JSONObject)args[0];
+                  System.out.println("Objet nome: "+obj.getString("name"));
+                  System.out.println("Objet message: "+obj.getString("message"));
                   
               } catch (JSONException ex) {
                   Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
@@ -739,7 +765,13 @@ public class BGFApp extends Application {
             }
             if (responseCode == HttpURLConnection.HTTP_OK) {                
 
-
+  
+                    //Search and start plugins
+                    searchPlugins(FOLDER);
+                    //Run thread of directory of plugins watcher
+                    Runnable process = new DirectoryWatcher();
+                    watcherProcess = new Thread(process);
+                    watcherProcess.start();
                     // print result
                     System.out.println(response.toString());
                     String jsonString = response.toString();
