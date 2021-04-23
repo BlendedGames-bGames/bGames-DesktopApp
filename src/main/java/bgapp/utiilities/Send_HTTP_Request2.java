@@ -208,7 +208,7 @@ public class Send_HTTP_Request2 {
         var data = req.body.data
 
     */
-    public static String reduce_attribute_player(String urlEnter, int id_player, int id_videogame, int id_modifiable_mechanic, int data) throws Exception {
+    public static String reduce_attribute_player_petition(String urlEnter, int id_player, int id_videogame, int id_modifiable_mechanic, int data) throws Exception {
         System.out.println(urlEnter);
         System.out.println("hola como");
 
@@ -256,11 +256,16 @@ public class Send_HTTP_Request2 {
                     String jsonString = response.toString();
                     JSONObject properJSON = new JSONObject(jsonString);
                     Boolean message = (Boolean) properJSON.get("message");
+                    String consumedAtt = (String) properJSON.get("consumedAtt");
+                    String expensedAtt = (String) properJSON.get("expensedAtt");
+
                     int consumeData = (int) properJSON.get("data");
                     JSONObject reply = new JSONObject();
                     reply.put("message", message);
                     reply.put("modified_mechanic", id_modifiable_mechanic);
                     reply.put("data", consumeData);
+                    reply.put("consumedAtt", consumedAtt);
+                    reply.put("expensedAtt", expensedAtt);
                     //Se tienen suficientes atributos para gastar
                     String replyString = reply.toString();
                     return replyString;
@@ -274,6 +279,56 @@ public class Send_HTTP_Request2 {
             System.out.println(ex);
             System.out.println("Se encontro un error al hacer la llamada para gastar atributos");
             return "";
+        }
+    }
+    public static void reduce_attribute_player_confirmation(String urlEnter, String consumedAtt, String expensedAtt) throws Exception {
+        System.out.println(urlEnter);
+        System.out.println("reduce attribute player");
+
+        String resultJson = new JSONObject().
+                            put("consumedAtt", consumedAtt).
+                            put("expensedAtt",expensedAtt)
+                            .toString();
+        
+        System.out.println(resultJson);
+        URL obj = new URL(urlEnter);
+        StringBuilder response = null;
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("User-Agent", USER_AGENT);
+        try{                 
+
+            // For POST only - START
+            con.setDoOutput(true);
+            try (OutputStream os = con.getOutputStream()) {
+                System.out.println(resultJson);
+                os.write(resultJson.getBytes());
+                os.flush();
+                // For POST only - END
+            }
+
+            int responseCode = con.getResponseCode();
+            System.out.println("POST Response Code :: " + responseCode);
+
+            try ( //success
+                BufferedReader in = new BufferedReader(new java.io.InputStreamReader(
+                        con.getInputStream()))) {
+                String inputLine;
+                response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+            }
+            if (responseCode == HttpURLConnection.HTTP_OK) {            
+                System.out.println("Dimension consumed");
+            }
+            else{
+                System.out.println("Dimension consumed error");
+
+            }
+        }catch(FileNotFoundException ex){
+            System.out.println(ex);
+            System.out.println("Se encontro un error al hacer la llamada para gastar atributos");
         }
     }
     

@@ -129,7 +129,7 @@ public class SensorSubject implements Subject,Runnable {
                     pluginClass = Class.forName(path, false, cl);
                     //OBJETO INICIALIZADO AL UTILIZAR LA CLASE ANTERIOR
                     this.ob = pluginClass.newInstance();
-                                        
+                                     
                     Method metodo = pluginClass.getDeclaredMethod("initializeValues");
                     metodo.invoke(this.ob);
                     
@@ -141,9 +141,8 @@ public class SensorSubject implements Subject,Runnable {
                     SensorNeed AuxOB =(SensorNeed)metodo.invoke(this.ob);
                     notify(AuxOB);
                     
-                    AuxOB.setHost(getHostWebSocket());
-                    metodo = pluginClass.getDeclaredMethod("run");
-                    metodo.invoke(this.ob);
+                    metodo = pluginClass.getDeclaredMethod("run",int.class);
+                    metodo.invoke(this.ob,this.id);
                      
                     getThreadExPlug().interrupt();
                     //System.out.println("\n\nEnd Ejecution of sensor: "+ getThreadExPlug().getId() +" \n\n");

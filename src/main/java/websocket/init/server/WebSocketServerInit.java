@@ -20,7 +20,8 @@ public class WebSocketServerInit{
     private String cmd = "cd websocket";
     private String dd = "dir";
     private String initSocket = "node index.js";
-    
+    private String initSocket2 = "node indexDevices.js";
+
     public WebSocketServerInit(String OS) throws IOException {
         File currentDirFile = new File("websocket");
         cmd = currentDirFile.getAbsolutePath();
@@ -28,6 +29,7 @@ public class WebSocketServerInit{
             cmd = "cd websocket";
             dd = "";
             initSocket = "node index.js";
+            initSocket2 = "node indexDevices.js";
             
         }else{
             //System.out.println("You run Windows OS ? haha");
@@ -50,6 +52,7 @@ public class WebSocketServerInit{
             
             
             Process process2 = Runtime.getRuntime().exec("cmd.exe /c "+ initSocket,null,new File(cmd));
+            //Process process3 = Runtime.getRuntime().exec("cmd.exe /c "+ initSocket2,null,new File(cmd)); // npm stop
             
             
             // PRUEBAAS!!!

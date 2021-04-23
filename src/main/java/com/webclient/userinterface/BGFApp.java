@@ -72,6 +72,7 @@ public class BGFApp extends Application {
 
     private static final String SUMMARY_HOST_ATTRIBUTES = "http://144.126.216.255:3008/spend_attributes_apis";
     private static final String LOGOUT_HOST = "http://144.126.216.255:3006/logout";
+    private static final String CONSUME_ATTRIBUTES = "http://144.126.216.255:3008/consume_attributes";
 
     //private static final String ACCOUNTS_HOST2 = "http://localhost:3000/player/";
     private static final String ACCOUNTS_HOST = "https://bgames-configurationservice.herokuapp.com/player/";
@@ -81,6 +82,9 @@ public class BGFApp extends Application {
     public static String nameAccount = "Player1";
     public static int idPlayer = 1; // Or idPlayer of player init the app
     public static ArrayList<Integer> Players = new ArrayList();
+    
+    public static String consumedAtt;
+    public static String expensedAtt;
     /*
     private static void batchDataSpendQuestion() {
         Object[] options = {"Yes, please",
@@ -115,12 +119,8 @@ public class BGFApp extends Application {
                     obj.put("room", "SensorCerebral");
                     obj.put("name", "Mindwave");
                     java.util.Date dt = new java.util.Date();
-
                     java.text.SimpleDateFormat dataTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
                     String currentTime = dataTime.format(dt);
-
-
                     obj2.put("id_player", idPlayer);
                     obj2.put("nameat", "Resistencia");
                     obj2.put("namecategory", "Físico");
@@ -133,7 +133,6 @@ public class BGFApp extends Application {
                 } catch (JSONException ex) {
                     System.out.println(ex);
                 }
-
                 socket2.emit("AllSensors");
               }
               else{
@@ -158,7 +157,7 @@ public class BGFApp extends Application {
             int id_videogame = (int) JSONInfo.get("id_videogame"); //Ultimate-Tetris-3D id
             int id_modifiable_mechanic =  (int) JSONInfo.get("id_modifiable_mechanic"); //Slow down blocks id in tetris
             int data = (int) JSONInfo.get("data"); //Data to convert
-            String response = Send_HTTP_Request2.reduce_attribute_player(SUMMARY_HOST_ATTRIBUTES,idPlayer, id_videogame,id_modifiable_mechanic,data);
+            String response = Send_HTTP_Request2.reduce_attribute_player_petition(SUMMARY_HOST_ATTRIBUTES,idPlayer, id_videogame,id_modifiable_mechanic,data);
             JSONObject responseJson = new JSONObject(response);
             //Se tienen suficientes atributos para gastar
             if((Boolean) responseJson.get("message")){
@@ -168,10 +167,15 @@ public class BGFApp extends Application {
                 sendJSON.put("name", roomName);
                 int[] message = { (int) responseJson.get("data"), (int) responseJson.get("modified_mechanic")};
                 sendJSON.put("message",message);
+                consumedAtt = (String) responseJson.get("consumedAtt");
+                expensedAtt = (String) responseJson.get("expensedAtt");
+                System.out.println("He guardado el json y el string de los puntos a consumir");
+
+                System.out.println(consumedAtt);
+                System.out.println(expensedAtt);
 
                 System.out.println(sendJSON);
                 socket.emit("message",sendJSON);
-                socket.emit("AllSensors");
             }
             else{
                 JOptionPane.showMessageDialog(null,"No se tienen suficientes atributos" );
@@ -235,7 +239,7 @@ public class BGFApp extends Application {
         JSONObject obj = new JSONObject();
         obj.put("room", "RoomOfBFApp");
         obj.put("name", "Blended Games Framework Desktop Aplication");
-        socket.emit("join_sensor", obj);
+        socket.emit("join_BG", obj);
       
         
         launch(args);
@@ -322,7 +326,7 @@ public class BGFApp extends Application {
             String email = LoginController.txtEmail.getText();
             String pass = LoginController.txtPass.getText();
             String key = LoginController.txtKey.getText();
-            String provider = "firebase.com";
+            String provider = "password";
             
             JSONObject resultJson;
             try {
@@ -560,10 +564,16 @@ public class BGFApp extends Application {
                 System.out.println("Connection OK!"); //To change body of generated methods, choose Tools | Templates.
             }
 
+        }).on("join_BG", new Emitter.Listener() {
+          @Override
+          public void call(Object... args) {
+                System.out.println("Se unio la app de Blended Games!"); //To change body of generated methods, choose Tools | Templates.
+          }
+
         }).on("join_sensor", new Emitter.Listener() {
           @Override
           public void call(Object... args) {
-              //socket.emit("RoomOfBFApp", "Blended Games Framework Desktop Aplication!");
+                System.out.println("Entre pero por aqui? OK!"); //To change body of generated methods, choose Tools | Templates.
           }
 
         }).on("join_sensor_offline", new Emitter.Listener() {
@@ -591,7 +601,8 @@ public class BGFApp extends Application {
                   System.out.println("Objet nome: "+obj.getString("name"));
                   System.out.println("Objet message: "+obj.getString("room"));
                   JSONObject message = new JSONObject();
-        
+                        System.out.println("Entro al de la app"); //To change body of generated methods, choose Tools | Templates.
+
                     message.put("room",obj.getString("name"));
                     message.put("name", obj.getString("room"));
                   socket.emit("join_sensor_videogame_confirmation",message);
@@ -607,7 +618,6 @@ public class BGFApp extends Application {
               try {
              
                   JSONObject obj = (JSONObject)args[0];
-                  System.out.println("Objet nome: "+obj.getString("name"));
                   System.out.println("Objet message: "+obj.getString("message"));
                   
               } catch (JSONException ex) {
@@ -618,13 +628,8 @@ public class BGFApp extends Application {
         }).on("AllSensors", new Emitter.Listener() {
           @Override
           public void call(Object... args) {
-              try {
-                  System.out.println("Args[0] enter: "+args[0]);
-                  JSONObject obj = (JSONObject)args[0];
-                  System.out.println("Sensors: "+obj.getString("sensoresActivos"));
-              } catch (JSONException ex) {
-                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
-              }
+              System.out.println("Args[0] enter: "+args[0]);
+              JSONObject obj = (JSONObject)args[0];
           }
 
         }).on("message", new Emitter.Listener() {
@@ -633,6 +638,7 @@ public class BGFApp extends Application {
           public void call(Object... args) {
               try {
                   JSONObject obj = (JSONObject)args[0];
+                  System.out.println("entre al mensaje original");
                   System.out.println("Objet nome: "+obj.getString("name"));
                   System.out.println("Objet message: "+obj.getString("message"));
               } catch (JSONException ex) {
@@ -647,6 +653,7 @@ public class BGFApp extends Application {
           public void call(Object... args) {
               try {
                   JSONObject obj = (JSONObject)args[0];
+                  System.out.println("entre al mensaje normal");
                   System.out.println("Objet nome: "+obj.getString("name"));
                   System.out.println("Objet message: "+obj.getString("message"));
                   powerUpAction((JSONObject) obj.get("message"),obj.getString("name"));
@@ -656,17 +663,21 @@ public class BGFApp extends Application {
               }
           }
 
-        }).on("Imessage", new Emitter.Listener() {
+        }).on("Dimessage", new Emitter.Listener() {
 
           @Override
           public void call(Object... args) {
               try {
                   JSONObject obj = (JSONObject)args[0];
+                  System.out.println("entre al consumo de los mensajes");
                   System.out.println("Objet nome: "+obj.getString("name"));
                   System.out.println("Objet message: "+obj.getString("message"));
-                  socket.emit("AllSensors");
+                  Send_HTTP_Request2.reduce_attribute_player_confirmation(CONSUME_ATTRIBUTES,consumedAtt,expensedAtt);
+
               } catch (JSONException ex) {
                   System.out.println("Failed to get object or name");
+              } catch (Exception ex) {
+                  Logger.getLogger(BGFApp.class.getName()).log(Level.SEVERE, null, ex);
               }
           }
 
@@ -728,6 +739,10 @@ public class BGFApp extends Application {
         System.out.println(responseCode);
         if (responseCode == HttpURLConnection.HTTP_OK) {  
                  setIdPlayer(0);
+                 ListSensors.clear();
+                 Players.clear();
+                 sensorsSubs.clear();
+                 
                  start(BGFApp.this.stage0);
 
         }
@@ -765,14 +780,6 @@ public class BGFApp extends Application {
             }
             if (responseCode == HttpURLConnection.HTTP_OK) {                
 
-  
-                    //Search and start plugins
-                    searchPlugins(FOLDER);
-                    //Run thread of directory of plugins watcher
-                    Runnable process = new DirectoryWatcher();
-                    watcherProcess = new Thread(process);
-                    watcherProcess.start();
-                    // print result
                     System.out.println(response.toString());
                     String jsonString = response.toString();
                     JSONObject properJSON = new JSONObject(jsonString);
@@ -780,6 +787,15 @@ public class BGFApp extends Application {
                     
                     Players.add(id_player);
                     setIdPlayer(Players.get(0));
+                    
+                    //Search and start plugins
+                    searchPlugins(FOLDER);
+                    //Run thread of directory of plugins watcher
+                    Runnable process = new DirectoryWatcher();
+                    watcherProcess = new Thread(process);
+                    watcherProcess.start();
+                    // print result
+                   
                     
                     System.out.println(id_player);
                     //Set up instance instead of using static load() method

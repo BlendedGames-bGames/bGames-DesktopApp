@@ -1,7 +1,9 @@
 var app = require('express')();
 const http = require('http').Server(app);
 const port = process.env.PORT||8001 // setting the port
-var sensoresActivos = {}; 
+var videojuegosActivos = {}; 
+var sensoresOnlineActivos = {}; 
+
 var usuarioPadre = {}; 
 const io = require('socket.io')(http);
 var contador = 0;
@@ -20,70 +22,70 @@ app.get("/",function(req,res){
 
 io.on('connection', function(socket) {
 	console.log("User connected");
+	console.log(socket.rooms)
 
-	socket.on("join_sensor", ({room,name})=>{
+	socket.on("join_BG", ({room,name})=>{
 		socket.join(room);
-		console.log(sensoresActivos)
-		if(!(room in sensoresActivos)){
-			console.log("NameOfRoom? "+ room + " Space: " + name )
-			sensoresActivos[room] = room;
+		console.log('entro el BG')
+
+		socket.to(desktopRoom).emit("join_BG",{room,name});
+	});
+
+
+	socket.on("join_sensor", (payload)=>{
+		var properJson = JSON.parse(payload)
+		console.log(properJson)
+		console.log(properJson.room)
+		console.log(properJson.name)
+
+
+		socket.join(properJson.room);
+		console.log(sensoresOnlineActivos)
+
+		if(!(properJson.room in sensoresOnlineActivos)){
+			console.log("NameOfRoom? "+ properJson.room + " Space: " + properJson.name )
+			sensoresOnlineActivos[properJson.room] = properJson.name;
 		} else{
-			sensoresActivos[room][name] = name;
+			sensoresOnlineActivos[properJson.room][properJson.name] = properJson.name;
 		}
-		
-		console.log("Ok?")
-		//io.sockets.in(room).emit("message",{message:"Conectado",name});
-		socket.to(room).emit("Imessage",{message:"Connected",name});
+		socket.emit("join_sensor",{room:properJson.room,name:properJson.name});
+
 	});
 
 	socket.on("join_sensor_videogame", ({room,name})=>{
 		socket.join(room);
-		console.log(sensoresActivos)
-		if(!(room in sensoresActivos)){
+		console.log(videojuegosActivos)
+		if(!(room in videojuegosActivos)){
 			console.log("NameOfRoom? "+ room + " Space: " + name )
-			sensoresActivos[room] = room;
+			videojuegosActivos[room] = room;
 		} else{
-			sensoresActivos[room][name] = name;
+			videojuegosActivos[room][name] = name;
 		}
 		
 		console.log("Ok?")
 		//io.sockets.in(room).emit("message",{message:"Conectado",name});
 		socket.to(desktopRoom).emit("join_sensor_videogame",{room,name});
 	});
-	socket.on("join_sensor_offline", ({room,name})=>{
-		socket.join(room);
-		console.log(sensoresActivos)
-		if(!(room in sensoresActivos)){
-			console.log("NameOfRoom? "+ room + " Space: " + name )
-			sensoresActivos[room] = room;
-		} else{
-			sensoresActivos[room][name] = name;
+	
+	socket.on("join_offline_sensors", ({room,name})=>{
+		for(sensor in sensoresOnlineActivos){
+			socket.join(sensor);
+			socket.to(sensor).emit("join_offline_sensors",{room,name});
 		}
-		
-		console.log("Ok?")
-		//io.sockets.in(room).emit("message",{message:"Conectado",name});
-		socket.emit("JSensorOffline",{room,name});
 	});
-	socket.on("join_sensor_offline_confirmation", ({room,name,videogame})=>{
+	socket.on("join_offline_sensors_confirmation", ({room,name})=>{
 		socket.join(room);
-		console.log(sensoresActivos)
-		if(!(room in sensoresActivos)){
-			console.log("NameOfRoom? "+ room + " Space: " + name )
-			sensoresActivos[room] = room;
-		} else{
-			sensoresActivos[room][name] = name;
-		}
+		socket.to(room).emit("Imessage",{message: name + " is in the same room as you",name});
 		
-		console.log("Se unio el videojuego "+ videogame + "al room del sensor "+name)
 	});
 	socket.on("join_sensor_videogame_confirmation", ({room,name})=>{
 		socket.join(room);
-		console.log(sensoresActivos)
-		if(!(room in sensoresActivos)){
+		console.log(videojuegosActivos)
+		if(!(room in videojuegosActivos)){
 			console.log("NameOfRoom? "+ room + " Space: " + name )
-			sensoresActivos[room] = room;
+			videojuegosActivos[room] = room;
 		} else{
-			sensoresActivos[room][name] = name;
+			videojuegosActivos[room][name] = name;
 		}
 		
 		console.log("Ok?")
@@ -94,16 +96,24 @@ io.on('connection', function(socket) {
 
 	socket.on("leave_sensor", ({room,name})=>{
 		socket.join(room);
-		if((room in sensoresActivos)){
+		if((room in videojuegosActivos)){
 			console.log("name room? "+ room + " Name: " + name )
-			delete sensoresActivos[room];
+			delete videojuegosActivos[room];
 		} else{
-			delete sensoresActivos[room][name];
+			delete videojuegosActivos[room][name];
 		}
 		
 		console.log("Se borró con exito")
 	});
-
+	socket.on("Omessage",({message})=> {
+		console.log("message: " + message)
+		for(sensor in videojuegosActivos){
+			socket.to(sensor).emit("Omessage",{
+				message
+			});
+		}
+		
+	});
 	socket.on("message",({room,message,name})=> {
 		console.log("Name room?!" + room + " name " + name)
 		console.log("message: " + message["data"])
@@ -128,10 +138,18 @@ io.on('connection', function(socket) {
 			name
 		});
 	}); 
+	socket.on("Dimessage",({room,message,name})=> {
+		console.log("Entra al mensaje?!" + room + " CACA " + name)
+		console.log("Entro lo siguiente: " + message)
+		socket.to(room).emit("Dimessage",{
+			message,
+			name
+		});
+	}); 
 
 	socket.on("AllSensors",function (){
 		console.log("Enter in All Sensors")
-		socket.emit("AllSensors",{sensoresActivos});
+		socket.emit("AllSensors",{videojuegosActivos});
 	})
 	socket.on('npmStop', () => {
 		process.abort();

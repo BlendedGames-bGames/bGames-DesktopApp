@@ -5,9 +5,6 @@ package com.webclient.userinterface;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import static com.webclient.userinterface.BGFApp.ListSensors;
-import static com.webclient.userinterface.BGFApp.myControllerHandle;
-import static com.webclient.userinterface.BGFApp.sensorsSubs;
 import javafx.scene.control.TextField;
 import java.io.BufferedReader;
 import java.io.IOException;

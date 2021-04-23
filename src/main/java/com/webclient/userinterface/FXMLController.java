@@ -80,7 +80,7 @@ public class FXMLController implements Initializable {
     private void loadDataForAttributeTableSecond(){
         
         col_estado.setCellValueFactory(new PropertyValueFactory<>("Host"));
-        col_nombre.setCellValueFactory(new PropertyValueFactory<>("sensorNombre"));
+        col_nombre.setCellValueFactory(new PropertyValueFactory<>("sensorName"));
         col_attributess.setCellValueFactory(new PropertyValueFactory<>("sensorCategory"));
         col_versionPlug.setCellValueFactory(new PropertyValueFactory<>("sensorVersion"));
         col_Acciones.setCellValueFactory(new PropertyValueFactory<>("PlayerId"));
